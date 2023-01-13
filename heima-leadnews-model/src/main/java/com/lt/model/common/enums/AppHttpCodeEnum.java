@@ -37,7 +37,15 @@ public enum AppHttpCodeEnum {
 
     // admin code 4000-4999
     ADMING_CHANNEL_NOT_EXIST(4000, "频道不存在"),
-    ADMING_CHANNEL_STATUS_TRUE(4001, "频道有效，无法删除");
+    ADMING_CHANNEL_EXIST(4001, "频道已存在"),
+    ADMING_CHANNEL_STATUS_TRUE(4002, "频道有效，无法删除"),
+
+    // operation code 5000-5999
+    OPERATION_CHANNEL_INSERT_ERROR(5000, "添加失败"),
+    OPERATION_CHANNEL_INSERT_BATCH_ERROR(5001, "批量添加失败"),
+    OPERATION_CHANNEL_UPDATE_ERROR(5002, "更新失败"),
+    OPERATION_CHANNEL_DELETE_ERROR(5003, "删除失败"),
+    OPERATION_CHANNEL_DELETE_BATCH_ERROR(5004, "批量删除失败");
 
     int code;
     String errorMessage;
