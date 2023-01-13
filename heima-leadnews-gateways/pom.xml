@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>heima-leadnews-gateways</artifactId>
+    <packaging>pom</packaging>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>

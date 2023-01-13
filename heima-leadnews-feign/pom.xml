@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>heima-leadnews-feign</artifactId>
+    <packaging>jar</packaging>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
