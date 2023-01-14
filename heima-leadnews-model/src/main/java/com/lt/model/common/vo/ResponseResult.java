@@ -23,7 +23,7 @@ public class ResponseResult<T> implements Serializable {
     /**
      * 提示信息
      */
-    private String msg;
+    private String errorMessage;
     /**
      * 数据
      */
@@ -37,15 +37,15 @@ public class ResponseResult<T> implements Serializable {
         this.data = data;
     }
 
-    public ResponseResult(Integer code, String msg, T data) {
+    public ResponseResult(Integer code, String errorMessage, T data) {
         this.code = code;
-        this.msg = msg;
+        this.errorMessage = errorMessage;
         this.data = data;
     }
 
-    public ResponseResult(Integer code, String msg) {
+    public ResponseResult(Integer code, String errorMessage) {
         this.code = code;
-        this.msg = msg;
+        this.errorMessage = errorMessage;
     }
 
     public static ResponseResult errorResult(int code, String msg) {
@@ -86,9 +86,9 @@ public class ResponseResult<T> implements Serializable {
         return okResult(enums.getCode(), msg);
     }
 
-    public ResponseResult<?> error(Integer code, String msg) {
+    public ResponseResult<?> error(Integer code, String errorMessage) {
         this.code = code;
-        this.msg = msg;
+        this.errorMessage = errorMessage;
         return this;
     }
 
@@ -98,10 +98,10 @@ public class ResponseResult<T> implements Serializable {
         return this;
     }
 
-    public ResponseResult<?> ok(Integer code, T data, String msg) {
+    public ResponseResult<?> ok(Integer code, T data, String errorMessage) {
         this.code = code;
         this.data = data;
-        this.msg = msg;
+        this.errorMessage = errorMessage;
         return this;
     }
 

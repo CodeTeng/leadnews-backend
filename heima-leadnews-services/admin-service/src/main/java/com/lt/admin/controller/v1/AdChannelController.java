@@ -1,7 +1,9 @@
 package com.lt.admin.controller.v1;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lt.admin.service.AdChannelService;
+import com.lt.exception.CustomException;
 import com.lt.model.admin.dto.AddChannelDTO;
 import com.lt.model.admin.dto.ChannelDTO;
 import com.lt.model.admin.dto.UpdateChannelDTO;
@@ -71,7 +73,7 @@ public class AdChannelController {
         }
     }
 
-    @PostMapping("/api/v1/channel/update")
+    @PostMapping("/update")
     @ApiOperation(value = "更新频道", notes = "如果有name需处理，无则不处理")
     public ResponseResult update(@RequestBody UpdateChannelDTO updateChannelDTO) {
         if (updateChannelDTO == null) {
@@ -87,7 +89,7 @@ public class AdChannelController {
         } else {
             // 校验唯一性
             if (!channel.getName().equals(updateChannelDTO.getName())) {
-                int count = channelService.count(new LambdaQueryWrapper<AdChannel>().eq(AdChannel::getName, updateChannelDTO.getName()));
+                int count = channelService.count(new QueryWrapper<AdChannel>().eq("name", updateChannelDTO.getName()));
                 if (count > 0) {
                     return ResponseResult.errorResult(AppHttpCodeEnum.ADMING_CHANNEL_EXIST);
                 }
@@ -103,7 +105,7 @@ public class AdChannelController {
         }
     }
 
-    @GetMapping("/api/v1/channel/del/{id}")
+    @GetMapping("/del/{id}")
     @ApiOperation(value = "删除频道")
     public ResponseResult deleteById(@PathVariable("id") Integer id) {
         if (id == null || id <= 0) {
