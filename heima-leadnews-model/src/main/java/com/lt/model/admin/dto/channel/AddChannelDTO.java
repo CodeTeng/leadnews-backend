@@ -1,4 +1,4 @@
-package com.lt.model.admin.dto;
+package com.lt.model.admin.dto.channel;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import io.swagger.annotations.ApiModel;
