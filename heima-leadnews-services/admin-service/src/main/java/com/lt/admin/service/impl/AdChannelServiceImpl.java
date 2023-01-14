@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lt.admin.mapper.AdChannelMapper;
 import com.lt.admin.service.AdChannelService;
-import com.lt.model.admin.dto.ChannelDTO;
+import com.lt.model.admin.dto.channel.ChannelDTO;
 import com.lt.model.admin.pojo.AdChannel;
 import com.lt.model.common.vo.PageResponseResult;
 import com.lt.model.common.vo.ResponseResult;

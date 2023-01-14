@@ -1,7 +1,7 @@
 package com.lt.admin.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lt.model.admin.dto.ChannelDTO;
+import com.lt.model.admin.dto.channel.ChannelDTO;
 import com.lt.model.admin.pojo.AdChannel;
 import com.lt.model.common.vo.ResponseResult;
 

@@ -1,4 +1,4 @@
-package com.lt.model.admin.dto;
+package com.lt.model.admin.dto.channel;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;

@@ -36,9 +36,11 @@ public enum AppHttpCodeEnum {
     NEED_ADMIND(3001, "需要管理员权限"),
 
     // admin code 4000-4999
-    ADMING_CHANNEL_NOT_EXIST(4000, "频道不存在"),
-    ADMING_CHANNEL_EXIST(4001, "频道已存在"),
-    ADMING_CHANNEL_STATUS_TRUE(4002, "频道有效，无法删除"),
+    ADMIN_CHANNEL_NOT_EXIST(4000, "频道不存在"),
+    ADMIN_CHANNEL_EXIST(4001, "频道已存在"),
+    ADMIN_CHANNEL_STATUS_TRUE(4002, "频道有效，无法删除"),
+    ADMIN_SENSITIVE_EXIST(4003, "敏感词已存在"),
+    ADMIN_SENSITIVE_NOT_EXIST(4004, "敏感词不存在"),
 
     // operation code 5000-5999
     OPERATION_CHANNEL_INSERT_ERROR(5000, "添加失败"),
