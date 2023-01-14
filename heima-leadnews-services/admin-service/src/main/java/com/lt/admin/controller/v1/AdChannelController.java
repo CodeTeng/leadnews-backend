@@ -3,10 +3,9 @@ package com.lt.admin.controller.v1;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lt.admin.service.AdChannelService;
-import com.lt.exception.CustomException;
-import com.lt.model.admin.dto.AddChannelDTO;
-import com.lt.model.admin.dto.ChannelDTO;
-import com.lt.model.admin.dto.UpdateChannelDTO;
+import com.lt.model.admin.dto.channel.AddChannelDTO;
+import com.lt.model.admin.dto.channel.ChannelDTO;
+import com.lt.model.admin.dto.channel.UpdateChannelDTO;
 import com.lt.model.admin.pojo.AdChannel;
 import com.lt.model.common.enums.AppHttpCodeEnum;
 import com.lt.model.common.vo.ResponseResult;
@@ -25,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/api/v1/channel")
-@Api(value = "频道管理", tags = "频道管理Controller", description = "频道管理API")
+@Api(value = "频道管理", tags = "频道管理Controller")
 public class AdChannelController {
     @Autowired
     private AdChannelService channelService;
@@ -60,7 +59,7 @@ public class AdChannelController {
         queryWrapper.eq(AdChannel::getName, name);
         int count = channelService.count(queryWrapper);
         if (count > 0) {
-            return ResponseResult.errorResult(AppHttpCodeEnum.ADMING_CHANNEL_EXIST);
+            return ResponseResult.errorResult(AppHttpCodeEnum.ADMIN_CHANNEL_EXIST);
         }
         // 执行新增
         AdChannel adChannel = new AdChannel();
@@ -75,6 +74,7 @@ public class AdChannelController {
 
     @PostMapping("/update")
     @ApiOperation(value = "更新频道", notes = "如果有name需处理，无则不处理")
+    @Transactional(rollbackFor = Exception.class)
     public ResponseResult update(@RequestBody UpdateChannelDTO updateChannelDTO) {
         if (updateChannelDTO == null) {
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_REQUIRE);
@@ -82,7 +82,7 @@ public class AdChannelController {
         // 获取原始频道
         AdChannel channel = channelService.getById(updateChannelDTO.getId());
         if (channel == null) {
-            return ResponseResult.errorResult(AppHttpCodeEnum.ADMING_CHANNEL_NOT_EXIST);
+            return ResponseResult.errorResult(AppHttpCodeEnum.ADMIN_CHANNEL_NOT_EXIST);
         }
         if (StringUtils.isBlank(updateChannelDTO.getName())) {
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_REQUIRE);
@@ -91,7 +91,7 @@ public class AdChannelController {
             if (!channel.getName().equals(updateChannelDTO.getName())) {
                 int count = channelService.count(new QueryWrapper<AdChannel>().eq("name", updateChannelDTO.getName()));
                 if (count > 0) {
-                    return ResponseResult.errorResult(AppHttpCodeEnum.ADMING_CHANNEL_EXIST);
+                    return ResponseResult.errorResult(AppHttpCodeEnum.ADMIN_CHANNEL_EXIST);
                 }
             }
         }
@@ -107,17 +107,18 @@ public class AdChannelController {
 
     @GetMapping("/del/{id}")
     @ApiOperation(value = "删除频道")
+    @Transactional(rollbackFor = Exception.class)
     public ResponseResult deleteById(@PathVariable("id") Integer id) {
         if (id == null || id <= 0) {
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_REQUIRE);
         }
         AdChannel channel = channelService.getById(id);
         if (channel == null) {
-            return ResponseResult.errorResult(AppHttpCodeEnum.ADMING_CHANNEL_NOT_EXIST);
+            return ResponseResult.errorResult(AppHttpCodeEnum.ADMIN_CHANNEL_NOT_EXIST);
         }
         // 频道处于正常状态 无法删除
         if (channel.getStatus()) {
-            return ResponseResult.errorResult(AppHttpCodeEnum.ADMING_CHANNEL_STATUS_TRUE);
+            return ResponseResult.errorResult(AppHttpCodeEnum.ADMIN_CHANNEL_STATUS_TRUE);
         }
         // 删除频道
         boolean flag = channelService.removeById(id);
