@@ -13,6 +13,9 @@
     <packaging>pom</packaging>
     <modules>
         <module>admin-service</module>
+        <module>user-service</module>
+        <module>wemedia-service</module>
+        <module>article-service</module>
     </modules>
 
     <properties>
@@ -22,6 +25,12 @@
     </properties>
 
     <dependencies>
+        <!-- 统一feign远程调用依赖 引入后可以直接注入feign接口-->
+        <dependency>
+            <artifactId>heima-leadnews-feign</artifactId>
+            <groupId>com.lt</groupId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
         <!-- 统一异常处理依赖 -->
         <dependency>
             <groupId>com.lt</groupId>

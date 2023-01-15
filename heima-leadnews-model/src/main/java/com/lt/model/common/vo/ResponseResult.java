@@ -111,10 +111,7 @@ public class ResponseResult<T> implements Serializable {
     }
 
     public boolean checkCode() {
-        if (this.getCode().intValue() != 0) {
-            return false;
-        }
-        return true;
+        return this.getCode().intValue() == 0;
     }
 
     public static void main(String[] args) {

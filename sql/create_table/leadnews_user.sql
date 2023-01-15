@@ -46,7 +46,6 @@ INSERT INTO `ap_user` VALUES ('2', 'abc', 'lisi', 'abc', '13511223454', '', '1',
 INSERT INTO `ap_user` VALUES ('3', 'sdsa', 'wangwu', 'wangwu', '13511223455', null, null, null, null, null, '1', null);
 INSERT INTO `ap_user` VALUES ('4', '123abc', 'admin', '81e158e10201b6d7aee6e35eaf744796', '13511223456', null, '1', null, null, '1', '1', '2020-03-30 16:36:32');
 INSERT INTO `ap_user` VALUES ('5', '123', 'suwukong', 'suwukong', '13511223458', null, '1', null, null, '1', '1', '2020-08-01 11:09:57');
-INSERT INTO `ap_user` VALUES ('6', null, null, null, null, null, null, null, null, null, null, null);
 
 -- ----------------------------
 -- Table structure for ap_user_article_list

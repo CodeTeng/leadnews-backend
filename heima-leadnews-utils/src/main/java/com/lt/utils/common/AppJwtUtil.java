@@ -12,26 +12,48 @@ import java.util.*;
  * @date: 2023/1/13 17:24
  */
 public class AppJwtUtil {
-    // TOKEN的有效期一天（S）
+    /**
+     * TOKEN的有效期 1h _表示支持的语法 可读性更强
+     */
     private static final int TOKEN_TIME_OUT = 3_600;
-    // 加密KEY
+
+    /**
+     * 加密KEY
+     */
     private static final String TOKEN_ENCRY_KEY = "MDk4ZjZiY2Q0NjIxZDM3M2NhZGU0ZTgzMjYyN2I0ZjY";
-    // 最小刷新间隔(S)
+
+    /**
+     * 最小刷新间隔(S)
+     */
     private static final int REFRESH_TIME = 300;
 
-    // 生产ID
-    public static String getToken(Long id) {
+    /**
+     * 生成token
+     *
+     * @param id 用户id
+     * @return token
+     */
+    public static String getToken(Integer id) {
         Map<String, Object> claimMaps = new HashMap<>();
         claimMaps.put("id", id);
         long currentTime = System.currentTimeMillis();
-        return Jwts.builder().setId(UUID.randomUUID().toString()).setIssuedAt(new Date(currentTime))  //签发时间
-                .setSubject("system")  // 说明
-                .setIssuer("heima") // 签发者信息
-                .setAudience("app")  // 接收用户
-                .compressWith(CompressionCodecs.GZIP)  //数据压缩方式
-                .signWith(SignatureAlgorithm.HS512, generalKey()) //加密方式
-                .setExpiration(new Date(currentTime + TOKEN_TIME_OUT * 1000))  //过期时间戳
-                .addClaims(claimMaps) //cla信息
+        return Jwts.builder()
+                // 签发时间
+                .setId(UUID.randomUUID().toString()).setIssuedAt(new Date(currentTime))
+                // 说明
+                .setSubject("system")
+                // 签发者信息
+                .setIssuer("muziteng")
+                // 接收用户
+                .setAudience("app")
+                // 数据压缩方式
+                .compressWith(CompressionCodecs.GZIP)
+                // 加密方式
+                .signWith(SignatureAlgorithm.HS512, generalKey())
+                // 过期时间戳
+                .setExpiration(new Date(currentTime + TOKEN_TIME_OUT * 1000))
+                // 用户有效信息
+                .addClaims(claimMaps)
                 .compact();
     }
 
@@ -85,28 +107,31 @@ public class AppJwtUtil {
     }
 
     /**
-     * 由字符串生成加密key
+     * 由字符串生成加密 key
      */
     public static SecretKey generalKey() {
         byte[] encodedKey = Base64.getEncoder().encode(TOKEN_ENCRY_KEY.getBytes());
-        SecretKey key = new SecretKeySpec(encodedKey, 0, encodedKey.length, "AES");
-        return key;
+        return new SecretKeySpec(encodedKey, 0, encodedKey.length, "AES");
     }
 
     public static void main(String[] args) {
-        String token = AppJwtUtil.getToken(1L);
+        // 生成token
+        String token = AppJwtUtil.getToken(1);
         System.out.println(token);
         try {
-            Claims claimsBody = getClaimsBody("eyJhbGciOiJIUzUxMiIsInppcCI6IkdaSVAifQ.H4sIAAAAAAAAADWLQQqEMAwA_5KzhbQ0tvU3kUa2glBIBUX27xsPe5thmAf20WAB9MKSSnJr5uwiVnRMJTgsknIi2raIMEHjAYufA4USKc4T6LnarbcOOd6uavqRdrAZn9WMezeWq__P7N-zWfPfH6YheqeAAAAA.btWGNZaYIHoGm_RDZAE2Gg9kJWf_qXo0o7XWzozySwcXnX2n-dHKmqmrSrTnl-iPwU6BcydOQDMXWRxfVZpcUQ");
-            int i = verifyToken(claimsBody);
-            if (i < 1) {
-
-                Object id = claimsBody.get("id");
-                System.out.println("解析token成功 ==> 用户的id值 == " + id);
+            // 获取 payload 信息
+            Claims claimsBody = AppJwtUtil.getClaimsBody(token);
+            // 判断是否过期
+            int res = AppJwtUtil.verifyToken(claimsBody);
+            if (res < 1) {
+                Integer id = (Integer) claimsBody.get("id");
+                System.out.println("token 解析成功，用户id=" + id);
+            } else {
+                System.out.println("token 已过期");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("解析token失败");
+            System.out.println("token 解析失败");
         }
     }
 }

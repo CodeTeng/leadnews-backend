@@ -10,7 +10,7 @@ public enum AppHttpCodeEnum {
     SUCCESS(0, "操作成功"),
     // 登录段1~50
     NEED_LOGIN(1, "需要登录后操作"),
-    LOGIN_PASSWORD_ERROR(2, "密码错误"),
+    LOGIN_PASSWORD_ERROR(2, "用户名或密码错误"),
     LOGIN_STATUS_ERROR(3, "用户状态异常,请联系管理员"),
 
     // TOKEN50~100
@@ -31,6 +31,7 @@ public enum AppHttpCodeEnum {
     AP_USER_DATA_NOT_EXIST(1001, "ApUser数据不存在"),
     DATA_NOT_EXIST(1002, "数据不存在"),
     DATA_NOT_ALLOW(1003, "数据不允许此操作"),
+    WM_USER_NOT_EXIST(1004, "自媒体用户不存在"),
     // 数据错误 3000~3500
     NO_OPERATOR_AUTH(3000, "无权限操作"),
     NEED_ADMIND(3001, "需要管理员权限"),
@@ -41,6 +42,8 @@ public enum AppHttpCodeEnum {
     ADMIN_CHANNEL_STATUS_TRUE(4002, "频道有效，无法删除"),
     ADMIN_SENSITIVE_EXIST(4003, "敏感词已存在"),
     ADMIN_SENSITIVE_NOT_EXIST(4004, "敏感词不存在"),
+    ADMIN_AD_USER_NOT_EXIST(4005, "AdUser用户不存在"),
+    ADMIN_AD_USER_EXIST(4006, "AdUser用户存在"),
 
     // operation code 5000-5999
     OPERATION_CHANNEL_INSERT_ERROR(5000, "添加失败"),
