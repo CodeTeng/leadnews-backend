@@ -1,4 +1,4 @@
-package com.lt.admin.gateway.filter;
+package com.lt.wemedia.filter;
 
 import com.alibaba.fastjson.JSON;
 import com.lt.utils.common.AppJwtUtil;
@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @description: 认证过滤器
+ * @description:
  * @author: ~Teng~
- * @date: 2023/1/14 23:09
+ * @date: 2023/1/18 21:27
  */
 @Component
 @Slf4j

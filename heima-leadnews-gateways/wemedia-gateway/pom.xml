@@ -5,24 +5,16 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.lt</groupId>
-        <artifactId>heima-leadnews-services</artifactId>
+        <artifactId>heima-leadnews-gateways</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>wemedia-service</artifactId>
+    <artifactId>wemedia-gateway</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
-    <dependencies>
-        <dependency>
-            <artifactId>heima-file-spring-boot-starter</artifactId>
-            <groupId>com.lt</groupId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-    </dependencies>
 
 </project>
