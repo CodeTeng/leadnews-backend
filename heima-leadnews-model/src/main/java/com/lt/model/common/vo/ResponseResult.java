@@ -25,6 +25,10 @@ public class ResponseResult<T> implements Serializable {
      */
     private String errorMessage;
     /**
+     * 图片url前缀
+     */
+    private String host;
+    /**
      * 数据
      */
     private T data;

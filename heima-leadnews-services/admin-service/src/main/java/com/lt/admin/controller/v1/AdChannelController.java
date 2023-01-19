@@ -17,6 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * @description: 频道管理
  * @author: ~Teng~
@@ -127,5 +129,12 @@ public class AdChannelController {
         } else {
             return ResponseResult.errorResult(AppHttpCodeEnum.OPERATION_CHANNEL_DELETE_ERROR);
         }
+    }
+
+    @ApiOperation("查询全部频道")
+    @GetMapping("/channels")
+    public ResponseResult getAllChannel() {
+        List<AdChannel> list = channelService.list();
+        return ResponseResult.okResult(list);
     }
 }

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lt.common.constants.wemedia.WemediaConstants;
 import com.lt.file.service.FileStorageService;
 import com.lt.model.common.enums.AppHttpCodeEnum;
 import com.lt.model.common.vo.PageResponseResult;
@@ -116,7 +117,8 @@ public class WmMaterialServiceImpl extends ServiceImpl<WmMaterialMapper, WmMater
         Page<WmMaterial> page = new Page<>(wmMaterialDTO.getPage(), wmMaterialDTO.getSize());
         LambdaQueryWrapper<WmMaterial> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(WmMaterial::getUserId, wmUserId)
-                .eq(isCollection != null, WmMaterial::getIsCollection, isCollection)
+                // 不为空 收藏 查询
+                .eq(isCollection != null && isCollection.equals(WemediaConstants.COLLECT_MATERIAL), WmMaterial::getIsCollection, isCollection)
                 .orderByDesc(WmMaterial::getCreatedTime);
         IPage<WmMaterial> resultPage = this.page(page, queryWrapper);
         List<WmMaterial> records = resultPage.getRecords();
@@ -165,7 +167,7 @@ public class WmMaterialServiceImpl extends ServiceImpl<WmMaterialMapper, WmMater
         if (!wmMaterial.getUserId().equals(wmUserId)) {
             return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_ALLOW, "只允许收藏自己上传的素材");
         }
-        wmMaterial.setType(type);
+        wmMaterial.setIsCollection(type);
         updateById(wmMaterial);
         return ResponseResult.okResult();
     }
