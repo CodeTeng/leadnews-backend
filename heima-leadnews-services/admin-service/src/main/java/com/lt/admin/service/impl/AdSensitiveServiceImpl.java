@@ -11,7 +11,10 @@ import com.lt.model.admin.pojo.AdSensitive;
 import com.lt.model.common.vo.PageResponseResult;
 import com.lt.model.common.vo.ResponseResult;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * @description:
@@ -20,6 +23,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class AdSensitiveServiceImpl extends ServiceImpl<AdSensitiveMapper, AdSensitive> implements AdSensitiveService {
+    @Autowired
+    private AdSensitiveMapper adSensitiveMapper;
 
     @Override
     public ResponseResult getSensitiveByNameAndPage(SensitiveDTO sensitiveDTO) {
@@ -30,5 +35,10 @@ public class AdSensitiveServiceImpl extends ServiceImpl<AdSensitiveMapper, AdSen
         IPage<AdSensitive> pageResult = this.page(page, queryWrapper);
         // 封装响应结果
         return new PageResponseResult(sensitiveDTO.getPage(), sensitiveDTO.getSize(), pageResult.getTotal(), pageResult.getRecords());
+    }
+
+    @Override
+    public ResponseResult<List<String>> getAllSensitives() {
+        return ResponseResult.okResult(adSensitiveMapper.getAllSensitives());
     }
 }

@@ -3,7 +3,7 @@ package com.lt.utils.common;
 import java.util.*;
 
 /**
- * @description:
+ * @description: DFA算法工具类
  * @author: ~Teng~
  * @date: 2023/1/13 17:43
  */
@@ -18,7 +18,6 @@ public class SensitiveWordUtil {
             System.out.println("敏感词列表不能为空");
             return;
         }
-
         // map初始长度words.size()，整个字典库的入口字数(小于words.size()，因为不同的词可能会有相同的首字)
         Map<String, Object> map = new HashMap<>(words.size());
         // 遍历过程中当前层次的数据
@@ -47,7 +46,6 @@ public class SensitiveWordUtil {
                 }
             }
         }
-
         dictionaryMap = map;
     }
 
@@ -98,7 +96,6 @@ public class SensitiveWordUtil {
                 } else {
                     wordMap.put(word, 1);
                 }
-
                 i += wordLength - 1;
             }
         }

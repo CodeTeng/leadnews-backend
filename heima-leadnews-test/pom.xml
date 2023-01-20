@@ -11,6 +11,9 @@
 
     <artifactId>heima-leadnews-test</artifactId>
     <packaging>pom</packaging>
+    <modules>
+        <module>aliyun-test</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lt.wemedia.mapper.WmNewsMapper">
+
+    <select id="getListAndPage" resultType="com.lt.model.wemedia.vo.WmNewsVO">
+        select wm_news.*,
+        wm_user.name as authorName
+        from wm_news
+        left join wm_user on wm_news.user_id = wm_user.id
+        <where>
+            <if test="dto.title != null and dto.title != ''">
+                and wm_news.title like #{dto.title}
+            </if>
+            <choose>
+                <when test="dto.status != null">
+                    and wm_news.status = #{dto.status}
+                </when>
+                <otherwise>
+                    and wm_news.status != 0
+                </otherwise>
+            </choose>
+        </where>
+        limit #{dto.page}, #{dto.size}
+    </select>
+
+    <select id="getListCount" resultType="java.lang.Long">
+        select count(*)
+        from wm_news
+        left join wm_user on wm_news.user_id = wm_user.id
+        <where>
+            <if test="dto.title != null and dto.title != ''">
+                and wm_news.title like #{dto.title}
+            </if>
+            <choose>
+                <when test="dto.status != null">
+                    and wm_news.status = #{dto.status}
+                </when>
+                <otherwise>
+                    and wm_news.status != 0
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+</mapper>

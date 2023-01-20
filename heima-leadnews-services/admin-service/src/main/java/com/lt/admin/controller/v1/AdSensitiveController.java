@@ -115,4 +115,10 @@ public class AdSensitiveController {
             return ResponseResult.errorResult(AppHttpCodeEnum.OPERATION_CHANNEL_DELETE_ERROR);
         }
     }
+
+    @ApiOperation(value = "查询敏感词内容list")
+    @PostMapping("/sensitives")
+    public ResponseResult getAllSensitives() {
+        return sensitiveService.getAllSensitives();
+    }
 }

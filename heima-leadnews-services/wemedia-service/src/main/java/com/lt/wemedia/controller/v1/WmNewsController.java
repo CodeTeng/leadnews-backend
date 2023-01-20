@@ -4,8 +4,10 @@ import com.lt.common.constants.wemedia.WemediaConstants;
 import com.lt.model.common.enums.AppHttpCodeEnum;
 import com.lt.model.common.vo.ResponseResult;
 import com.lt.model.wemedia.dto.DownOrUpNewsDTO;
+import com.lt.model.wemedia.dto.NewsAuthDTO;
 import com.lt.model.wemedia.dto.SubmitWmNewsDTO;
 import com.lt.model.wemedia.dto.WmNewsPageDTO;
+import com.lt.model.wemedia.pojo.WmNews;
 import com.lt.wemedia.service.WmNewsService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -39,19 +41,20 @@ public class WmNewsController {
     @ApiOperation(value = "发表文章", notes = "发表文章，保存草稿，修改文章 共用的方法")
     @PostMapping("/submit")
     public ResponseResult submitNews(@RequestBody SubmitWmNewsDTO submitWmNewsDTO) {
+        // 参数校验
         if (submitWmNewsDTO == null) {
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_REQUIRE);
         }
-        // 参数校验
         String content = submitWmNewsDTO.getContent();
         String title = submitWmNewsDTO.getTitle();
         Integer channelId = submitWmNewsDTO.getChannelId();
         String labels = submitWmNewsDTO.getLabels();
         Short type = submitWmNewsDTO.getType();
+        Short status = submitWmNewsDTO.getStatus();
         if (StringUtils.isAnyBlank(content, title, labels)) {
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
         }
-        if (channelId == null || type == null) {
+        if (channelId == null || type == null || status == null) {
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
         }
         return wmNewsService.submitNews(submitWmNewsDTO);
@@ -90,5 +93,42 @@ public class WmNewsController {
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
         }
         return wmNewsService.downOrUpNews(downOrUpNewsDTO);
+    }
+
+    @PostMapping("/list_vo")
+    @ApiOperation("查询文章列表")
+    public ResponseResult getNewsList(@RequestBody NewsAuthDTO newsAuthDTO) {
+        if (newsAuthDTO == null) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_REQUIRE);
+        }
+        newsAuthDTO.checkParam();
+        return wmNewsService.getNewsList(newsAuthDTO);
+    }
+
+    @GetMapping("/one_vo/{id}")
+    @ApiOperation("查询文章详细信息")
+    public ResponseResult getWmNewsVo(@PathVariable("id") Integer id) {
+        if (id == null || id <= 0) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        }
+        return wmNewsService.getWmNewsVo(id);
+    }
+
+    @ApiOperation("人工审核通过 状态:4")
+    @PostMapping("/auth_pass")
+    public ResponseResult authPass(@RequestBody NewsAuthDTO newsAuthDTO) {
+        if (newsAuthDTO == null) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_REQUIRE);
+        }
+        return wmNewsService.updateStatus(WmNews.Status.ADMIN_SUCCESS.getCode(), newsAuthDTO);
+    }
+
+    @ApiOperation("人工审核失败 状态:2")
+    @PostMapping("/auth_fail")
+    public ResponseResult authFail(@RequestBody NewsAuthDTO newsAuthDTO) {
+        if (newsAuthDTO == null) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_REQUIRE);
+        }
+        return wmNewsService.updateStatus(WmNews.Status.FAIL.getCode(), newsAuthDTO);
     }
 }

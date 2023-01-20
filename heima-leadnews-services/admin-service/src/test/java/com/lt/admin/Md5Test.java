@@ -15,9 +15,9 @@ public class Md5Test {
 
     @Test
     public void md5() {
-        String salt = RandomStringUtils.randomAlphanumeric(10);
+        String salt = "123456";
         System.out.println("salt:" + salt);
-        String str = DigestUtils.md5DigestAsHex(("hello" + salt).getBytes(StandardCharsets.UTF_8));
+        String str = DigestUtils.md5DigestAsHex(("admin" + salt).getBytes(StandardCharsets.UTF_8));
         System.out.println(str);
     }
 }

@@ -1,6 +1,9 @@
 spring:
   application:
     name: leadnews-wemedia # 服务名称
+  servlet:
+    multipart:
+      max-file-size: 10MB
   profiles:
     active: dev # 开发环境配置
     ip: 127.0.0.1  # 环境ip地址
@@ -21,3 +24,10 @@ spring:
           - data-id: share-file.yml # 配置文件名-Data Id
             group: DEFAULT_GROUP   # 默认为DEFAULT_GROUP
             refresh: false   # 是否动态刷新，默认为false
+          - data-id: share-rabbit.yml # 配置文件名-Data Id
+            group: DEFAULT_GROUP   # 默认为DEFAULT_GROUP
+            refresh: false   # 是否动态刷新，默认为fals
+# MP 配置
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
