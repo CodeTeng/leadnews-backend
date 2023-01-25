@@ -70,7 +70,6 @@ public class ApUserRealnameServiceImpl extends ServiceImpl<ApUserRealnameMapper,
             // 实名用户信息非待审核状态 无法审核
             return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_ALLOW, "用户处于非审核状态，无法审核");
         }
-        // todo 调用云接口进行审核
         // 3. 更新认证用户信息
         userRealname.setStatus(status);
         if (StringUtils.isNotBlank(authDTO.getMsg())) {

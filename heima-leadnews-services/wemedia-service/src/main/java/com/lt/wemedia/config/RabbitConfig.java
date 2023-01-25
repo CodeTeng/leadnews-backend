@@ -40,7 +40,6 @@ public class RabbitConfig implements InitializingBean {
             public void confirm(CorrelationData correlationData, boolean ack, String cause) {
                 if (!ack) {
                     // TODO 可扩展自动重试
-
                     log.error("发送消息到mq失败  ，原因: {}", cause);
                 }
             }
@@ -57,7 +56,6 @@ public class RabbitConfig implements InitializingBean {
             @Override
             public void returnedMessage(Message message, int replyCode, String replyText, String exchange, String routingKey) {
                 // TODO 可扩展自动重试
-
                 log.error("消息返还回调触发  ，交换机: {} , 路由: {} , 消息内容: {} , 原因: {}  ", exchange, routingKey, message, replyText);
             }
         });

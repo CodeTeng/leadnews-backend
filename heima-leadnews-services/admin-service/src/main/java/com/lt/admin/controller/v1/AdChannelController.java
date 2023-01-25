@@ -137,4 +137,13 @@ public class AdChannelController {
         List<AdChannel> list = channelService.list();
         return ResponseResult.okResult(list);
     }
+
+    @ApiOperation("根据id查询频道")
+    @GetMapping("/one/{id}")
+    public ResponseResult findOne(@PathVariable Integer id) {
+        if (id == null || id <= 0) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_REQUIRE);
+        }
+        return ResponseResult.okResult(channelService.getById(id));
+    }
 }

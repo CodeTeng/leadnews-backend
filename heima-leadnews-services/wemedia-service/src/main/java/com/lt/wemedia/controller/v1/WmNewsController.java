@@ -131,4 +131,14 @@ public class WmNewsController {
         }
         return wmNewsService.updateStatus(WmNews.Status.FAIL.getCode(), newsAuthDTO);
     }
+
+    @ApiOperation("根据id修改自媒体文章")
+    @PutMapping("/update")
+    public ResponseResult updateWmNews(@RequestBody WmNews wmNews) {
+        if (wmNews == null) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_REQUIRE);
+        }
+        wmNewsService.updateById(wmNews);
+        return ResponseResult.okResult();
+    }
 }

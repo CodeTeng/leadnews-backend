@@ -3,12 +3,10 @@ package com.lt.feigns;
 import com.lt.config.HeimaFeignAutoConfiguration;
 import com.lt.feigns.fallback.WemediaFeignFallback;
 import com.lt.model.common.vo.ResponseResult;
+import com.lt.model.wemedia.pojo.WmNews;
 import com.lt.model.wemedia.pojo.WmUser;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @description: Wemedia 远程接口
@@ -26,4 +24,10 @@ public interface WemediaFeign {
 
     @PostMapping("/api/v1/user/save")
     ResponseResult<WmUser> save(@RequestBody WmUser wmUser);
+
+    @GetMapping("/api/v1/news/one/{id}")
+    ResponseResult<WmNews> findWmNewsById(@PathVariable("id") Integer id);
+
+    @PutMapping("/api/v1/news/update")
+    ResponseResult updateWmNews(@RequestBody WmNews wmNews);
 }

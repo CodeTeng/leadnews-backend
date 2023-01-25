@@ -7,6 +7,8 @@ import feign.hystrix.FallbackFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 
 /**
  * @description:
@@ -19,9 +21,19 @@ public class AdminFeignFallback implements FallbackFactory<AdminFeign> {
     @Override
     public AdminFeign create(Throwable throwable) {
         throwable.printStackTrace();
-        return () -> {
-            log.error("AdminFeign sensitives 远程调用出错啦 ~~~ !!!! {} ", throwable.getMessage());
-            return ResponseResult.errorResult(AppHttpCodeEnum.REMOTE_SERVER_ERROR);
+        return new AdminFeign() {
+            @Override
+            public ResponseResult<List<String>> getAllSensitives() {
+                log.error("AdminFeign sensitives 远程调用出错啦 ~~~ !!!! {} ", throwable.getMessage());
+                return ResponseResult.errorResult(AppHttpCodeEnum.REMOTE_SERVER_ERROR);
+            }
+
+            @Override
+            public ResponseResult findOne(Integer id) {
+                log.info("参数: {}", id);
+                log.error("AdminFeign findOne 远程调用出错啦 ~~~ !!!! {} ", throwable.getMessage());
+                return ResponseResult.errorResult(AppHttpCodeEnum.REMOTE_SERVER_ERROR);
+            }
         };
     }
 }
