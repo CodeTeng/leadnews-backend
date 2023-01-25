@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 
 /**
- * @description:
+ * @description: 发布文章消费者
  * @author: ~Teng~
  * @date: 2023/1/25 18:17
  */

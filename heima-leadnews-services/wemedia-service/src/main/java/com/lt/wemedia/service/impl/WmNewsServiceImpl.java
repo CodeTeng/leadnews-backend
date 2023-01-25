@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lt.common.constants.message.NewsUpOrDownConstants;
 import com.lt.common.constants.message.PublishArticleConstants;
 import com.lt.common.constants.wemedia.NewsAutoScanConstants;
 import com.lt.common.constants.wemedia.WemediaConstants;
@@ -278,18 +279,37 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
 
     @Override
     public ResponseResult downOrUpNews(DownOrUpNewsDTO downOrUpNewsDTO) {
+        // 1. 查询文章
         WmNews wmNews = this.getById(downOrUpNewsDTO.getId());
         if (wmNews == null) {
             return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST, "该文章不存在");
         }
-        // 判断文章是否发布
+        // 2. 判断文章是否发布
         if (!wmNews.getStatus().equals(WmNews.Status.PUBLISHED.getCode())) {
             return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_ALLOW, "文章处于未发布状态，不能上下架");
         }
-        // 修改文章状态
-        wmNews.setEnable(downOrUpNewsDTO.getEnable());
+        // 3. 修改文章状态
+        Short enable = downOrUpNewsDTO.getEnable();
+        wmNews.setEnable(enable);
         this.updateById(wmNews);
-        // todo 同步 app 端文章配置
+        // 4. todo 同步 app 端文章配置
+        // 5. 上下架发送消息通知  用于同步 article 及 elasticsearch
+        if (wmNews.getArticleId() != null) {
+            if (enable.equals(WemediaConstants.WM_NEWS_UP)) {
+                // 发送上架消息通知
+                rabbitTemplate.convertAndSend(
+                        NewsUpOrDownConstants.NEWS_UP_OR_DOWN_EXCHANGE,
+                        NewsUpOrDownConstants.NEWS_UP_ROUTE_KEY,
+                        wmNews.getArticleId());
+            } else {
+                // 发送下架消息通知
+                rabbitTemplate.convertAndSend(
+                        NewsUpOrDownConstants.NEWS_UP_OR_DOWN_EXCHANGE,
+                        NewsUpOrDownConstants.NEWS_DOWN_ROUTE_KEY,
+                        wmNews.getArticleId()
+                );
+            }
+        }
         return ResponseResult.okResult();
     }
 

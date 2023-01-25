@@ -75,7 +75,7 @@ public class ApArticle {
     private Boolean syncStatus;
     @ApiModelProperty("来源")
     private Boolean origin;
-    @TableField("static_url")
+    @TableField(value = "static_url", exist = false)
     @ApiModelProperty("文章静态页路径")
     private String staticUrl;
 }
