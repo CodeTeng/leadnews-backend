@@ -1,4 +1,4 @@
-package com.lt.wemedia.config;
+package com.lt.article.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -7,18 +7,14 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * @description: InitializingBean: springbean生命周期接口  代表完成bean装配后 执行的初始化方法
- * 这个类的目的：
- * 设置rabbitmq消息序列化机制  （默认jdk效率差）
- * 设置rabbitmq消息发送确认 回调
- * 设置rabbitmq消息返还 回调
+ * @description:
  * @author: ~Teng~
- * @date: 2023/1/20 15:59
+ * @date: 2023/1/25 18:14
  */
-@Component
+@Configuration
 @Slf4j
 public class RabbitConfig implements InitializingBean {
     @Autowired

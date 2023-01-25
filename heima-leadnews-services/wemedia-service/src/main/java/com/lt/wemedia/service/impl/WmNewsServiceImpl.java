@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lt.common.constants.message.PublishArticleConstants;
 import com.lt.common.constants.wemedia.NewsAutoScanConstants;
 import com.lt.common.constants.wemedia.WemediaConstants;
 import com.lt.exception.CustomException;
@@ -354,7 +355,20 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
             wmNews.setReason(newsAuthDTO.getMsg());
         }
         this.updateById(wmNews);
-        // todo 定时发布文章
+        // 5. 通知定时发布文章
+        long publishTime = wmNews.getPublishTime().getTime();
+        long nowTime = System.currentTimeMillis();
+        long remainTime = publishTime - nowTime;
+        // 发布文章
+        rabbitTemplate.convertAndSend(
+                PublishArticleConstants.DELAY_DIRECT_EXCHANGE,
+                PublishArticleConstants.PUBLISH_ARTICLE_ROUTE_KEY,
+                wmNews.getId(),
+                (message) -> {
+                    message.getMessageProperties().setHeader("x-delay", remainTime <= 0 ? 0 : remainTime);
+                    return message;
+                });
+        log.info("立即发布文章通知成功发送，文章id : {}", wmNews.getId());
         return ResponseResult.okResult();
     }
 }

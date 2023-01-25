@@ -3,6 +3,7 @@ package com.lt.wemedia.service.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.lt.aliyun.GreenImageScan;
 import com.lt.aliyun.GreenTextScan;
+import com.lt.common.constants.message.PublishArticleConstants;
 import com.lt.exception.CustomException;
 import com.lt.feigns.AdminFeign;
 import com.lt.model.common.enums.AppHttpCodeEnum;
@@ -13,14 +14,12 @@ import com.lt.wemedia.mapper.WmNewsMapper;
 import com.lt.wemedia.service.WmNewsAutoScanService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -41,6 +40,8 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
     private GreenTextScan greenTextScan;
     @Autowired
     private GreenImageScan greenImageScan;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public void autoScanWmNews(Integer id) {
@@ -93,7 +94,20 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
         // 5. 审核通过 更新文章状态
         log.info("审核通过");
         updateWmNews(wmNews, WmNews.Status.SUCCESS.getCode(), "审核通过");
-        // todo 6. 判断发布时间与当前时间关系 定时发布文章
+        // 6. 判断发布时间与当前时间关系 通知定时发布文章
+        long publishTime = wmNews.getPublishTime().getTime();
+        long nowTime = System.currentTimeMillis();
+        long remainTime = publishTime - nowTime;
+        // 发布文章
+        rabbitTemplate.convertAndSend(
+                PublishArticleConstants.DELAY_DIRECT_EXCHANGE,
+                PublishArticleConstants.PUBLISH_ARTICLE_ROUTE_KEY,
+                wmNews.getId(),
+                (message) -> {
+                    message.getMessageProperties().setHeader("x-delay", remainTime <= 0 ? 0 : remainTime);
+                    return message;
+                });
+        log.info("立即发布文章通知成功发送，文章id : {}", wmNews.getId());
     }
 
     /**
