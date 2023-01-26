@@ -23,5 +23,34 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
+        <!-- 文件存储 starter 依赖 -->
+        <dependency>
+            <artifactId>heima-file-spring-boot-starter</artifactId>
+            <groupId>com.lt</groupId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!-- 模板引擎 starter 依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-freemarker</artifactId>
+        </dependency>
+        <!--seata-->
+<!--        <dependency>-->
+<!--            <groupId>com.alibaba.cloud</groupId>-->
+<!--            <artifactId>spring-cloud-starter-alibaba-seata</artifactId>-->
+<!--            <exclusions>-->
+<!--                &lt;!&ndash;版本较低，1.3.0，因此排除&ndash;&gt;-->
+<!--                <exclusion>-->
+<!--                    <artifactId>seata-spring-boot-starter</artifactId>-->
+<!--                    <groupId>io.seata</groupId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>io.seata</groupId>-->
+<!--            <artifactId>seata-spring-boot-starter</artifactId>-->
+<!--            &lt;!&ndash;seata starter 采用1.4.2版本&ndash;&gt;-->
+<!--            <version>${seata.version}</version>-->
+<!--        </dependency>-->
     </dependencies>
 </project>

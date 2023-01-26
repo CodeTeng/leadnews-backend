@@ -1,17 +1,19 @@
 package com.lt.article.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lt.article.mapper.ApArticleConfigMapper;
 import com.lt.article.mapper.ApArticleContentMapper;
 import com.lt.article.mapper.ApArticleMapper;
 import com.lt.article.mapper.AuthorMapper;
 import com.lt.article.service.ApArticleService;
+import com.lt.article.service.GeneratePageService;
+import com.lt.common.constants.article.ArticleConstants;
 import com.lt.exception.CustomException;
 import com.lt.feigns.AdminFeign;
 import com.lt.feigns.WemediaFeign;
 import com.lt.model.admin.pojo.AdChannel;
+import com.lt.model.article.dto.ArticleHomeDTO;
 import com.lt.model.article.pojo.ApArticle;
 import com.lt.model.article.pojo.ApArticleConfig;
 import com.lt.model.article.pojo.ApArticleContent;
@@ -20,10 +22,17 @@ import com.lt.model.common.enums.AppHttpCodeEnum;
 import com.lt.model.common.vo.ResponseResult;
 import com.lt.model.wemedia.pojo.WmNews;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -39,10 +48,21 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
     private ApArticleConfigMapper apArticleConfigMapper;
     @Autowired
     private ApArticleContentMapper apArticleContentMapper;
+    @Autowired
+    private GeneratePageService generatePageService;
+    @Autowired
+    private ApArticleMapper apArticleMapper;
+    @Value("${file.oss.web-site}")
+    private String webSite;
+    @Value("${file.minio.readPath}")
+    private String readPath;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void publishArticle(Integer newsId) {
+        if (newsId == null || newsId <= 0) {
+            throw new CustomException(AppHttpCodeEnum.PARAM_INVALID);
+        }
         // 1. 根据文章 id 查询 wmNews 内容信息 并判断状态
         WmNews wmNews = getWmNews(newsId);
         // 2. 封装 apArticle 信息
@@ -51,7 +71,8 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
         saveOrUpdateArticle(apArticle);
         // 4. 保存 apConfig 和 apContent 信息
         saveConfigAndContent(wmNews, apArticle);
-        // 5. todo 页面静态化
+        // 5. 利用 freemarker 页面静态化
+        generatePageService.generateArticlePage(wmNews.getContent(), apArticle);
         // 6. 更新 wmNews 状态，改为已发布，并设置 articleID
         updateWmNews(wmNews, apArticle);
         // 7. todo 通知 es 索引库添加索引
@@ -169,5 +190,48 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
             // 更新文章
             this.updateById(apArticle);
         }
+    }
+
+    @Override
+    public ResponseResult load(Short loadtype, ArticleHomeDTO dto) {
+        // 1. 参数校验
+        // 分页
+        Integer size = dto.getSize();
+        if (size == null || size <= 0) {
+            dto.setSize(10);
+        }
+        // 频道
+        String tag = dto.getTag();
+        if (StringUtils.isBlank(tag)) {
+            dto.setTag(ArticleConstants.DEFAULT_TAG);
+        }
+        // 时间
+        Date minBehotTime = dto.getMinBehotTime();
+        if (minBehotTime == null) {
+            dto.setMinBehotTime(new Date());
+        }
+        Date maxBehotTime = dto.getMaxBehotTime();
+        if (maxBehotTime == null) {
+            dto.setMaxBehotTime(new Date());
+        }
+        // 类型
+        if (!loadtype.equals(ArticleConstants.LOADTYPE_LOAD_MORE) &&
+                !loadtype.equals(ArticleConstants.LOADTYPE_LOAD_NEW)) {
+            loadtype = ArticleConstants.LOADTYPE_LOAD_MORE;
+        }
+        // 2. 查询 mapper
+        List<ApArticle> apArticles = apArticleMapper.loadArticleList(dto, loadtype);
+        // 添加静态页面访问前缀 和 阿里云访问前缀
+        apArticles = apArticles.stream().peek(apArticle -> {
+            String images = apArticle.getImages();
+            apArticle.setStaticUrl(readPath + apArticle.getStaticUrl());
+            if (StringUtils.isNotBlank(images)) {
+                images = Arrays.stream(images.split(","))
+                        .map(url -> webSite + url)
+                        .collect(Collectors.joining(","));
+                apArticle.setImages(images);
+            }
+        }).collect(Collectors.toList());
+        return ResponseResult.okResult(apArticles);
     }
 }

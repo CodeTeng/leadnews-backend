@@ -22,3 +22,7 @@ spring:
 logging:
   level:
     com.lt.feigns: debug
+# MP 配置
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

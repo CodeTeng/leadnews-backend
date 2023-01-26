@@ -128,11 +128,6 @@
                 <artifactId>mybatis-spring</artifactId>
                 <version>${mybatis.spring.version}</version>
             </dependency>
-            <!--            <dependency>-->
-            <!--                <groupId>com.github.pagehelper</groupId>-->
-            <!--                <artifactId>pagehelper-spring-boot-starter</artifactId>-->
-            <!--                <version>${pagehelper.version}</version>-->
-            <!--            </dependency>-->
             <!-- jsoup -->
             <dependency>
                 <groupId>org.jsoup</groupId>
