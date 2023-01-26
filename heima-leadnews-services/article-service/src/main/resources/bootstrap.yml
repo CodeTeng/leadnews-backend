@@ -3,7 +3,7 @@ spring:
     name: leadnews-article # 服务名称
   profiles:
     active: dev # 开发环境配置
-    ip: 127.0.0.1  # 环境ip地址
+    ip: 192.168.80.128  # 环境ip地址
   cloud:
     nacos:
       discovery: # 注册中心地址配置

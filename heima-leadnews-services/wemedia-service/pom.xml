@@ -19,6 +19,16 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.13.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>3.5.1</version>
+        </dependency>
+        <dependency>
             <artifactId>heima-file-spring-boot-starter</artifactId>
             <groupId>com.lt</groupId>
             <version>1.0-SNAPSHOT</version>
