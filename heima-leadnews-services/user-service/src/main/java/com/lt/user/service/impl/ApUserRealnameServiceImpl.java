@@ -19,10 +19,10 @@ import com.lt.model.wemedia.pojo.WmUser;
 import com.lt.user.mapper.ApUserMapper;
 import com.lt.user.mapper.ApUserRealnameMapper;
 import com.lt.user.service.ApUserRealnameService;
+import io.seata.spring.annotation.GlobalTransactional;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @description:
@@ -51,7 +51,7 @@ public class ApUserRealnameServiceImpl extends ServiceImpl<ApUserRealnameMapper,
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @GlobalTransactional(rollbackFor = Exception.class)
     public ResponseResult updateStatusById(AuthDTO authDTO, Short status) {
         // 1. 获取相关信息
         // 1.1 获取 APP 用户认证信息

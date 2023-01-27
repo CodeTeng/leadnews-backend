@@ -27,6 +27,7 @@ import com.lt.wemedia.mapper.WmNewsMapper;
 import com.lt.wemedia.mapper.WmNewsMaterialMapper;
 import com.lt.wemedia.mapper.WmUserMapper;
 import com.lt.wemedia.service.WmNewsService;
+import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -37,7 +38,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +91,7 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @GlobalTransactional(rollbackFor = Exception.class)
     public ResponseResult submitNews(SubmitWmNewsDTO submitWmNewsDTO) {
         // 1. 判断用户是否登录
         WmUser wmUser = WmThreadLocalUtils.getUser();
