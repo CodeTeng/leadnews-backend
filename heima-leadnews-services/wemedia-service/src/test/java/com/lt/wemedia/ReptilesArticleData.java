@@ -12,6 +12,7 @@ import com.lt.model.wemedia.pojo.WmUser;
 import com.lt.wemedia.mapper.WmMaterialMapper;
 import com.lt.wemedia.service.WmNewsService;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.text.StrBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -42,16 +43,16 @@ import java.util.*;
 @SpringBootTest
 public class ReptilesArticleData {
     @Autowired
-    WmNewsService wmNewsService;
+    private WmNewsService wmNewsService;
     @Autowired
-    WmMaterialMapper wmMaterialMapper;
+    private WmMaterialMapper wmMaterialMapper;
     @Autowired
-    FileStorageService fileStorageService;
+    private FileStorageService fileStorageService;
     @Value("${file.oss.web-site}")
-    String webSite;
+    private String webSite;
 
     /**
-     * 直接通过调用修改状态方法，将所有爬虫数据 设置通过
+     * 直接通过调用修改状态方法，将所有爬虫数据 设置人工审核通过
      */
     @Test
     public void authPassWmNews() {
@@ -63,16 +64,13 @@ public class ReptilesArticleData {
         }
     }
 
-    /**
-     * 直接通过调用修改状态方法，将所有爬虫数据 设置通过
-     */
-    Document document = null;
+    private Document document = null;
 
     @BeforeEach
     public void initDriver() {
         System.setProperty("webdriver.chrome.driver", "D:\\LeStoreDownload\\chromedriver_win32\\chromedriver.exe");
         WebDriver driver = new ChromeDriver();
-        driver.get("https://3g.163.com/touch/ent/?ver=c&clickfrom=index2018_header_main");
+        driver.get("https://3g.163.com/touch/ent/sub/music?ver=c&clickfrom=index2018_header_main");
         document = Jsoup.parse(driver.getPageSource());
     }
 
@@ -92,16 +90,12 @@ public class ReptilesArticleData {
             String title = null;
             Elements imgList = null;
             try {
-                Elements aElements = liElement.getElementsByTag("a");
-                for (Element aElement : aElements) {
-                    href = aElement.attr("href");
-                    System.out.println("娱乐新闻的 url 路径：" + href);
-                }
-                Elements titleElements = liElement.getElementsByTag("h4");
-                for (Element titleElement : titleElements) {
-                    title = titleElement.text();
-                    System.out.println("娱乐新闻的标题：" + title);
-                }
+                Element aElement = liElement.getElementsByTag("a").get(0);
+                href = aElement.attr("href");
+                System.out.println("娱乐新闻的 url 路径：" + href);
+                Element titleElement = liElement.getElementsByTag("h4").get(0);
+                title = titleElement.text();
+                System.out.println("娱乐新闻的标题：" + title);
                 imgList = liElement.getElementsByTag("img");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -135,7 +129,7 @@ public class ReptilesArticleData {
             if (urlList.size() > 0) {
                 submitWmNewsDTO.setImages(urlList);
             }
-            submitWmNewsDTO.setChannelId(50); // 设置频道
+            submitWmNewsDTO.setChannelId(51); // 设置频道
             try {
                 Thread.sleep(1000); // 睡眠1秒 让发布时间不一致
             } catch (InterruptedException e) {
@@ -211,36 +205,27 @@ public class ReptilesArticleData {
      * 解析文章详情内容
      */
     private List<Map> parseContent(String href) {
-        String url = "http:" + href;
+        href = href.substring(4);
+        String url = "https://3g.163.com/dy" + href;
         List<Map> contentMap = new ArrayList<>();
         Document document = null;
+        StringBuilder stringBuilder = new StringBuilder();
         try {
             document = Jsoup.connect(url)
                     .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36")
                     .get();
-//            Element articleElement = document.getElementsByTag("article").get(0);
-//            Elements pElements = articleElement.getElementsByTag("p");
-//            for (Element pElement : pElements) {
-//                String text = pElement.text();
-//                System.out.println("文章内容信息：");
-//            }
-            Element contentDiv = document.getElementsByClass("content").get(0);
-            Element pageDiv = contentDiv.getElementsByTag("div").get(0);
-            Elements allElements = pageDiv.getAllElements();
-            for (Element subElement : allElements) {
-                String tagName = subElement.tagName();
-                String className = subElement.className();
-                if ("p".equalsIgnoreCase(tagName)) {
-                    Map map = new HashMap();
-                    map.put("type", "text");
-                    map.put("value", subElement.text());
-                    contentMap.add(map);
-                    System.out.println("文本内容: " + subElement.text());
-                }
-                if ("div".equalsIgnoreCase(tagName) && "photo".equalsIgnoreCase(className)) {
-                    System.out.println("图片内容: " + subElement.text());
-                }
+            Element articleElement = document.getElementsByTag("article").get(0);
+            Elements pElements = articleElement.getElementsByTag("p");
+            for (Element pElement : pElements) {
+                pElement.removeClass("keyword-search");
+                String text = pElement.text();
+                stringBuilder.append(text);
             }
+            System.out.println("文本信息：" + stringBuilder);
+            Map map = new HashMap();
+            map.put("type", "text");
+            map.put("value", stringBuilder.toString());
+            contentMap.add(map);
         } catch (Exception e) {
             e.printStackTrace();
             Map map = new HashMap();

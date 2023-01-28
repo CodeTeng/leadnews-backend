@@ -16,7 +16,6 @@ import java.io.IOException;
  * @date: 2023/1/26 22:53
  */
 public class ReptilesArticleTest {
-
     @Test
     public void test() throws IOException {
         System.setProperty("webdriver.chrome.driver", "D:\\LeStoreDownload\\chromedriver_win32\\chromedriver.exe");
