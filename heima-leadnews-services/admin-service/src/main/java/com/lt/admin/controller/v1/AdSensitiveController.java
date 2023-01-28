@@ -6,12 +6,15 @@ import com.lt.admin.service.AdSensitiveService;
 import com.lt.model.admin.dto.sensitive.SensitiveDTO;
 import com.lt.model.admin.pojo.AdSensitive;
 import com.lt.model.common.enums.AppHttpCodeEnum;
+import com.lt.model.common.validator.ValidatorAddGroup;
+import com.lt.model.common.validator.ValidatorUpdateGroup;
 import com.lt.model.common.vo.ResponseResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -40,17 +43,13 @@ public class AdSensitiveController {
     @ApiOperation(value = "添加敏感词", notes = "敏感词不能为空 不能重复添加")
     @PostMapping("/save")
     @Transactional(rollbackFor = Exception.class)
-    public ResponseResult save(@RequestBody AdSensitive adSensitive) {
+    public ResponseResult save(@RequestBody @Validated({ValidatorAddGroup.class}) AdSensitive adSensitive) {
         if (adSensitive == null) {
-            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_REQUIRE);
-        }
-        String name = adSensitive.getSensitives();
-        if (StringUtils.isBlank(name)) {
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_REQUIRE);
         }
         // 判断频道是否存在
         LambdaQueryWrapper<AdSensitive> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(AdSensitive::getSensitives, name);
+        queryWrapper.eq(AdSensitive::getSensitives, adSensitive.getSensitives());
         int count = sensitiveService.count(queryWrapper);
         if (count > 0) {
             return ResponseResult.errorResult(AppHttpCodeEnum.ADMIN_SENSITIVE_EXIST);
@@ -67,7 +66,7 @@ public class AdSensitiveController {
     @PostMapping("/update")
     @ApiOperation(value = "更新敏感词")
     @Transactional(rollbackFor = Exception.class)
-    public ResponseResult update(@RequestBody AdSensitive adSensitive) {
+    public ResponseResult update(@RequestBody @Validated({ValidatorUpdateGroup.class}) AdSensitive adSensitive) {
         if (adSensitive == null) {
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_REQUIRE);
         }
