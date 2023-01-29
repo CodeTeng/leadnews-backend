@@ -1,6 +1,7 @@
 package com.lt.feigns.fallback;
 
 import com.lt.feigns.ArticleFeign;
+import com.lt.model.article.pojo.ApArticle;
 import com.lt.model.article.pojo.ApAuthor;
 import com.lt.model.common.enums.AppHttpCodeEnum;
 import com.lt.model.common.vo.ResponseResult;
@@ -30,6 +31,13 @@ public class ArticleFeignFallback implements FallbackFactory<ArticleFeign> {
             @Override
             public ResponseResult save(ApAuthor apAuthor) {
                 log.error("参数 apAuthor: {}", apAuthor);
+                log.error("ArticleFeign save 远程调用出错啦 ~~~ !!!! {} ", throwable.getMessage());
+                return ResponseResult.errorResult(AppHttpCodeEnum.REMOTE_SERVER_ERROR);
+            }
+
+            @Override
+            public ResponseResult<ApArticle> findById(Long id) {
+                log.error("参数 id: {}", id);
                 log.error("ArticleFeign save 远程调用出错啦 ~~~ !!!! {} ", throwable.getMessage());
                 return ResponseResult.errorResult(AppHttpCodeEnum.REMOTE_SERVER_ERROR);
             }
