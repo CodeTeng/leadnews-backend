@@ -2,6 +2,7 @@ package com.lt.feigns;
 
 import com.lt.config.HeimaFeignAutoConfiguration;
 import com.lt.feigns.fallback.ArticleFeignFallback;
+import com.lt.model.article.pojo.ApArticle;
 import com.lt.model.article.pojo.ApAuthor;
 import com.lt.model.common.vo.ResponseResult;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -25,4 +26,7 @@ public interface ArticleFeign {
 
     @PostMapping("/api/v1/author/save")
     ResponseResult save(@RequestBody ApAuthor apAuthor);
+
+    @GetMapping("/api/v1/article/findById/{id}")
+    ResponseResult<ApArticle> findById(@PathVariable("id") Long id);
 }
