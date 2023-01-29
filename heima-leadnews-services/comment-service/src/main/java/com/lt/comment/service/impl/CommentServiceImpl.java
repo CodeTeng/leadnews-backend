@@ -21,6 +21,8 @@ import com.lt.model.user.pojo.ApUser;
 import com.lt.utils.common.SensitiveWordUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -33,7 +35,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.concurrent.BrokenBarrierException;
 import java.util.stream.Collectors;
 
 /**
@@ -56,6 +57,8 @@ public class CommentServiceImpl implements CommentService {
     private ArticleFeign articleFeign;
     @Autowired
     private CommentHotService commentHotService;
+    @Autowired
+    private RedissonClient redissonClient;
 
     @Override
     public ResponseResult saveComment(CommentSaveDTO commentSaveDTO) {
@@ -146,58 +149,65 @@ public class CommentServiceImpl implements CommentService {
             return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST, "该评论不存在");
         }
         // 3. 判断是点赞还是取消点赞
-        Short operation = commentLikeDTO.getOperation();
-        Integer userId = apUser.getId();
-        ApCommentLike apCommentLike = mongoTemplate.findOne(
-                Query.query(Criteria.where("commentId").is(commentId).and("authorId").is(userId)),
-                ApCommentLike.class
-        );
-        if (operation.intValue() == 0) {
-            // 4. 点赞
-            // 4.1 判断用户是否已经点赞过
-            if (apCommentLike != null) {
-                // 已经点赞过 无法重复点赞
-                return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_ALLOW, "无法重复点赞");
-            }
-            apCommentLike = new ApCommentLike();
-            apCommentLike.setCommentId(commentId);
-            apCommentLike.setOperation(operation);
-            apCommentLike.setAuthorId(userId);
-            ApCommentLike insert = mongoTemplate.insert(apCommentLike);
-            log.info("评论点赞成功：{}", insert);
-            // 4.2 修改评论点赞数量
-            apComment.setLikes(apComment.getLikes() + 1);
-            ApComment save = mongoTemplate.save(apComment);
-            log.info("评论点赞成功：{}", save);
-            // 4.3 异步判断是否是热点文章
-            if (apComment.getLikes() >= 10) {
-                commentHotService.hotCommentExecutor(apComment);
-            }
-            Map<String, Object> map = new HashMap<>(1);
-            map.put("likes", apComment.getLikes());
-            return ResponseResult.okResult(map);
-        } else {
-            // 4. 取消点赞
-            // 4.1 判断是否存在该评论点赞
-            if (apCommentLike == null) {
-                return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST, "该评论你尚未点赞");
-            }
-            mongoTemplate.remove(apCommentLike);
-            log.info("取消评论点赞成功");
-            // 4.2 修改评论的点赞数量
-            Integer likes = apComment.getLikes();
-            if (likes - 1 < 0) {
-                likes = 0;
+        // 引入分布式锁
+        RLock lock = redissonClient.getLock("likes-lock");
+        lock.lock();
+        Integer lastLikes;
+        Map<String, Object> map = new HashMap<>(1);
+        try {
+            Short operation = commentLikeDTO.getOperation();
+            Integer userId = apUser.getId();
+            ApCommentLike apCommentLike = mongoTemplate.findOne(
+                    Query.query(Criteria.where("commentId").is(commentId).and("authorId").is(userId)),
+                    ApCommentLike.class
+            );
+            if (operation.intValue() == 0) {
+                // 4. 点赞
+                // 4.1 判断用户是否已经点赞过
+                if (apCommentLike != null) {
+                    // 已经点赞过 无法重复点赞
+                    return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_ALLOW, "无法重复点赞");
+                }
+                apCommentLike = new ApCommentLike();
+                apCommentLike.setCommentId(commentId);
+                apCommentLike.setOperation(operation);
+                apCommentLike.setAuthorId(userId);
+                ApCommentLike insert = mongoTemplate.insert(apCommentLike);
+                log.info("评论点赞成功：{}", insert);
+                // 4.2 修改评论点赞数量
+                apComment.setLikes(apComment.getLikes() + 1);
+                ApComment save = mongoTemplate.save(apComment);
+                log.info("评论点赞成功：{}", save);
+                // 4.3 异步判断是否是热点文章
+                if (apComment.getLikes() >= 10 && apComment.getFlag().intValue() == 0) {
+                    commentHotService.hotCommentExecutor(apComment);
+                }
+                lastLikes = apComment.getLikes();
             } else {
-                likes--;
+                // 4. 取消点赞
+                // 4.1 判断是否存在该评论点赞
+                if (apCommentLike == null) {
+                    return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST, "该评论你尚未点赞");
+                }
+                mongoTemplate.remove(apCommentLike);
+                log.info("取消评论点赞成功");
+                // 4.2 修改评论的点赞数量
+                Integer likes = apComment.getLikes();
+                if (likes - 1 < 0) {
+                    likes = 0;
+                } else {
+                    likes--;
+                }
+                apComment.setLikes(likes);
+                ApComment save = mongoTemplate.save(apComment);
+                log.info("取消评论点赞成功：{}", save);
+                lastLikes = apComment.getLikes();
             }
-            apComment.setLikes(likes);
-            ApComment save = mongoTemplate.save(apComment);
-            log.info("取消评论点赞成功：{}", save);
-            Map<String, Object> map = new HashMap<>(1);
-            map.put("likes", apComment.getLikes());
-            return ResponseResult.okResult(map);
+        } finally {
+            lock.unlock();
         }
+        map.put("likes", lastLikes);
+        return ResponseResult.okResult(map);
     }
 
     @Override
