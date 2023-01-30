@@ -19,4 +19,12 @@ public interface ApArticleService extends IService<ApArticle> {
      * @param loadtype 0为加载更多  1为加载最新
      */
     ResponseResult load(Short loadtype, ArticleHomeDTO dto);
+
+    /**
+     * 根据参数加载文章列表
+     *
+     * @param loadTypeLoadMore 0为加载更多  1为加载最新
+     * @param firstPage        是否为首页 true 首页
+     */
+    ResponseResult load2(Short loadTypeLoadMore, ArticleHomeDTO dto, boolean firstPage);
 }

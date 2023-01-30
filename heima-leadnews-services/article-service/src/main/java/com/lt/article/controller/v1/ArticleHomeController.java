@@ -26,7 +26,7 @@ public class ArticleHomeController {
     @ApiOperation(value = "查询热点文章列表", notes = "第一次点击各类频道时，调用此接口 查询该频道对应热点文章")
     @PostMapping("/load")
     public ResponseResult load(@RequestBody ArticleHomeDTO dto) {
-        return articleService.load(ArticleConstants.LOADTYPE_LOAD_MORE, dto);
+        return articleService.load2(ArticleConstants.LOADTYPE_LOAD_MORE, dto, true);
     }
 
     @ApiOperation(value = "查询更多文章", notes = "app文章列表下拉时 根据页面文章最小时间 实现滚动查询")

@@ -1,5 +1,6 @@
 package com.lt.article.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lt.article.mapper.ApArticleConfigMapper;
@@ -27,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -52,6 +54,8 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
     private GeneratePageService generatePageService;
     @Autowired
     private ApArticleMapper apArticleMapper;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
     @Value("${file.oss.web-site}")
     private String webSite;
     @Value("${file.minio.readPath}")
@@ -195,6 +199,24 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
     @Override
     public ResponseResult load(Short loadtype, ArticleHomeDTO dto) {
         // 1. 参数校验
+        loadtype = checkParam(loadtype, dto);
+        // 2. 查询 mapper
+        List<ApArticle> apArticles = apArticleMapper.loadArticleList(dto, loadtype);
+        // 添加静态页面访问前缀 和 阿里云访问前缀
+        apArticles = apArticles.stream().peek(apArticle -> {
+            String images = apArticle.getImages();
+            apArticle.setStaticUrl(readPath + apArticle.getStaticUrl());
+            if (StringUtils.isNotBlank(images)) {
+                images = Arrays.stream(images.split(","))
+                        .map(url -> webSite + url)
+                        .collect(Collectors.joining(","));
+                apArticle.setImages(images);
+            }
+        }).collect(Collectors.toList());
+        return ResponseResult.okResult(apArticles);
+    }
+
+    private Short checkParam(Short loadtype, ArticleHomeDTO dto) {
         // 分页
         Integer size = dto.getSize();
         if (size == null || size <= 0) {
@@ -219,19 +241,26 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
                 !loadtype.equals(ArticleConstants.LOADTYPE_LOAD_NEW)) {
             loadtype = ArticleConstants.LOADTYPE_LOAD_MORE;
         }
-        // 2. 查询 mapper
-        List<ApArticle> apArticles = apArticleMapper.loadArticleList(dto, loadtype);
-        // 添加静态页面访问前缀 和 阿里云访问前缀
-        apArticles = apArticles.stream().peek(apArticle -> {
-            String images = apArticle.getImages();
-            apArticle.setStaticUrl(readPath + apArticle.getStaticUrl());
-            if (StringUtils.isNotBlank(images)) {
-                images = Arrays.stream(images.split(","))
-                        .map(url -> webSite + url)
-                        .collect(Collectors.joining(","));
-                apArticle.setImages(images);
+        return loadtype;
+    }
+
+    @Override
+    public ResponseResult load2(Short loadTypeLoadMore, ArticleHomeDTO dto, boolean firstPage) {
+        // 参数校验
+        loadTypeLoadMore = checkParam(loadTypeLoadMore, dto);
+        // 是首页文章 为热点文章
+        if (firstPage) {
+            String articleListJson = stringRedisTemplate.opsForValue().get(ArticleConstants.HOT_ARTICLE_FIRST_PAGE + dto.getTag());
+            if (StringUtils.isNotBlank(articleListJson)) {
+                List<ApArticle> apArticles = JSON.parseArray(articleListJson, ApArticle.class);
+                for (ApArticle apArticle : apArticles) {
+                    apArticle.setStaticUrl(readPath + apArticle.getStaticUrl());
+                }
+                ResponseResult result = ResponseResult.okResult(apArticles);
+                result.setHost(webSite);
+                return result;
             }
-        }).collect(Collectors.toList());
-        return ResponseResult.okResult(apArticles);
+        }
+        return load(loadTypeLoadMore, dto);
     }
 }
