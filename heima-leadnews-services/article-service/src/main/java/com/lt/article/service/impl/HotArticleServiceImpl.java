@@ -1,6 +1,7 @@
 package com.lt.article.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.lt.article.mapper.ApArticleMapper;
 import com.lt.article.service.HotArticleService;
 import com.lt.common.constants.article.ArticleConstants;
@@ -11,7 +12,10 @@ import com.lt.model.article.pojo.ApArticle;
 import com.lt.model.article.vo.HotArticleVo;
 import com.lt.model.common.enums.AppHttpCodeEnum;
 import com.lt.model.common.vo.ResponseResult;
+import com.lt.model.mess.app.AggBehaviorDTO;
+import com.lt.utils.common.DateUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -22,6 +26,7 @@ import org.springframework.util.CollectionUtils;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -119,5 +124,78 @@ public class HotArticleServiceImpl implements HotArticleService {
             score += views * ArticleConstants.HOT_ARTICLE_VIEW_WEIGHT;
         }
         return score;
+    }
+
+    @Override
+    public void updateApArticleHot(AggBehaviorDTO aggBehaviorDTO) {
+        // 1. 根据文章id获取文章数据
+        ApArticle apArticle = apArticleMapper.selectById(aggBehaviorDTO.getArticleId());
+        if (apArticle == null) {
+            throw new CustomException(AppHttpCodeEnum.DATA_NOT_EXIST, "对应文章不存在");
+        }
+        // 2. 更新文章中的行为数据
+        if (aggBehaviorDTO.getView() != 0) {
+            int view = (int) (apArticle.getViews() == null ? aggBehaviorDTO.getView() : aggBehaviorDTO.getView() + apArticle.getViews());
+            apArticle.setViews(view);
+        }
+        if (aggBehaviorDTO.getLike() != 0) {
+            int like = (int) (apArticle.getLikes() == null ? aggBehaviorDTO.getLike() : aggBehaviorDTO.getLike() + apArticle.getLikes());
+            apArticle.setLikes(like);
+        }
+        if (aggBehaviorDTO.getComment() != 0) {
+            int comment = (int) (apArticle.getComment() == null ? aggBehaviorDTO.getComment() : aggBehaviorDTO.getComment() + apArticle.getComment());
+            apArticle.setComment(comment);
+        }
+        if (aggBehaviorDTO.getCollect() != 0) {
+            int collection = (int) (apArticle.getCollection() == null ? aggBehaviorDTO.getCollect() : aggBehaviorDTO.getCollect() + apArticle.getCollection());
+            apArticle.setCollection(collection);
+        }
+        apArticleMapper.updateById(apArticle);
+        // 3. 计算文章分值 当日文章整体权重 * 3
+        Integer score = computeScore(apArticle);
+        // 如果是今天发布的文章，热度*3
+        String publishStr = DateUtils.dateToString(apArticle.getPublishTime());
+        String nowStr = DateUtils.dateToString(new Date());
+        if (publishStr.equals(nowStr)) {
+            score *= 3;
+        }
+        // 4. 查询对应的热点文章 替换分值较低的文章
+        updateArticleCache(apArticle, score, ArticleConstants.HOT_ARTICLE_FIRST_PAGE + apArticle.getChannelId());
+        // 5. 查询推荐频道的文章 替换分值较低的文章
+        updateArticleCache(apArticle, score, ArticleConstants.HOT_ARTICLE_FIRST_PAGE + ArticleConstants.DEFAULT_TAG);
+    }
+
+    /**
+     * 更新文章缓存
+     *
+     * @param apArticle 当前文章
+     * @param score     分数
+     * @param cacheKey  key
+     */
+    private void updateArticleCache(ApArticle apArticle, Integer score, String cacheKey) {
+        // 1. 查询文章是否存在热点文章中
+        String hotArticleListJson = stringRedisTemplate.opsForValue().get(cacheKey);
+        if (StringUtils.isNotBlank(hotArticleListJson)) {
+            boolean isHas = false;
+            List<HotArticleVo> hotArticleVoList = JSONArray.parseArray(hotArticleListJson, HotArticleVo.class);
+            // 2.1 如果当前缓存中有当前文章，更新分值
+            for (HotArticleVo hotArticleVo : hotArticleVoList) {
+                if (hotArticleVo.getId().equals(apArticle.getId())) {
+                    hotArticleVo.setScore(score);
+                    isHas = true;
+                    break;
+                }
+            }
+            // 2.2 不存在 将文章添加到热点集合中
+            if (!isHas) {
+                HotArticleVo hotArticle = new HotArticleVo();
+                BeanUtils.copyProperties(apArticle, hotArticle);
+                hotArticle.setScore(score);
+                hotArticleVoList.add(hotArticle);
+            }
+            // 3. 将集合按照文章得分降序排序 并取30条文章
+            hotArticleVoList = hotArticleVoList.stream().sorted(Comparator.comparing(HotArticleVo::getScore).reversed()).limit(30).collect(Collectors.toList());
+            stringRedisTemplate.opsForValue().set(cacheKey, JSON.toJSONString(hotArticleVoList));
+        }
     }
 }
