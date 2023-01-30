@@ -1,15 +1,19 @@
 package com.lt.behavior.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.lt.behavior.service.ApBehaviorEntryService;
 import com.lt.behavior.service.ApReadBehaviorService;
+import com.lt.common.constants.article.HotArticleConstants;
 import com.lt.model.behavior.dto.ReadBehaviorDTO;
 import com.lt.model.behavior.pojo.ApBehaviorEntry;
 import com.lt.model.behavior.pojo.ApReadBehavior;
 import com.lt.model.common.enums.AppHttpCodeEnum;
 import com.lt.model.common.vo.ResponseResult;
+import com.lt.model.mess.app.NewBehaviorDTO;
 import com.lt.model.threadlocal.AppThreadLocalUtils;
 import com.lt.model.user.pojo.ApUser;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -30,6 +34,8 @@ public class ApReadBehaviorServiceImpl implements ApReadBehaviorService {
     private ApBehaviorEntryService apBehaviorEntryService;
     @Autowired
     private MongoTemplate mongoTemplate;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public ResponseResult readBehavior(ReadBehaviorDTO readBehaviorDTO) {
@@ -70,6 +76,13 @@ public class ApReadBehaviorServiceImpl implements ApReadBehaviorService {
             ApReadBehavior insert = mongoTemplate.insert(apReadBehavior);
             log.info("首次添加阅读后的阅读实体：{}", insert);
         }
+        // 发送消息
+        NewBehaviorDTO newBehaviorDTO = new NewBehaviorDTO();
+        newBehaviorDTO.setType(NewBehaviorDTO.BehaviorType.VIEWS);
+        newBehaviorDTO.setArticleId(articleId);
+        newBehaviorDTO.setAdd(1);
+        rabbitTemplate.convertAndSend(HotArticleConstants.HOT_ARTICLE_SCORE_BEHAVIOR_QUEUE, JSON.toJSONString(newBehaviorDTO));
+        log.info("发送阅读行为消息成功：{}", newBehaviorDTO);
         return ResponseResult.okResult();
     }
 }

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.lt.article.mapper.ApArticleMapper;
 import com.lt.article.service.HotArticleService;
 import com.lt.common.constants.article.ArticleConstants;
+import com.lt.exception.CustomException;
 import com.lt.feigns.AdminFeign;
 import com.lt.model.admin.pojo.AdChannel;
 import com.lt.model.article.pojo.ApArticle;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -47,6 +49,10 @@ public class HotArticleServiceImpl implements HotArticleService {
         String beginTime = LocalDateTime.now().minusDays(5).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         // 1.2 查询文章
         List<ApArticle> apArticleList = apArticleMapper.selectArticleByDate(beginTime);
+        if (CollectionUtils.isEmpty(apArticleList)) {
+            log.error("项目太冷清了，近日暂无文章");
+            return;
+        }
         // 2. 将文章转为热点VO 并计算每个文章的分值
         List<HotArticleVo> hotArticleVoList = computeArticleScore(apArticleList);
         // 3. 按照频道找出分值较高的30条，存入缓存

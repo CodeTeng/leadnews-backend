@@ -10,6 +10,7 @@ import com.lt.model.common.vo.ResponseResult;
 import com.lt.model.threadlocal.AppThreadLocalUtils;
 import com.lt.model.user.pojo.ApUser;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -30,6 +31,8 @@ public class ApUnlikeBehaviorServiceImpl implements ApUnlikeBehaviorService {
     private ApBehaviorEntryService apBehaviorEntryService;
     @Autowired
     private MongoTemplate mongoTemplate;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public ResponseResult unLikeBehavior(UnLikesBehaviorDTO unLikesBehaviorDTO) {

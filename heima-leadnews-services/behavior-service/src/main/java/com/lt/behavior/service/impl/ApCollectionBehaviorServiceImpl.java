@@ -1,5 +1,9 @@
 package com.lt.behavior.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.lt.common.constants.article.HotArticleConstants;
+import com.lt.model.mess.app.NewBehaviorDTO.BehaviorType;
+
 import com.lt.behavior.service.ApBehaviorEntryService;
 import com.lt.behavior.service.ApCollectionBehaviorService;
 import com.lt.model.behavior.dto.CollectionBehaviorDTO;
@@ -7,9 +11,11 @@ import com.lt.model.behavior.pojo.ApBehaviorEntry;
 import com.lt.model.behavior.pojo.ApCollection;
 import com.lt.model.common.enums.AppHttpCodeEnum;
 import com.lt.model.common.vo.ResponseResult;
+import com.lt.model.mess.app.NewBehaviorDTO;
 import com.lt.model.threadlocal.AppThreadLocalUtils;
 import com.lt.model.user.pojo.ApUser;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -30,6 +36,8 @@ public class ApCollectionBehaviorServiceImpl implements ApCollectionBehaviorServ
     private ApBehaviorEntryService apBehaviorEntryService;
     @Autowired
     private MongoTemplate mongoTemplate;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public ResponseResult collectBehavior(CollectionBehaviorDTO collectionBehaviorDTO) {
@@ -71,6 +79,13 @@ public class ApCollectionBehaviorServiceImpl implements ApCollectionBehaviorServ
             apCollection.setType(type);
             ApCollection insert = mongoTemplate.insert(apCollection);
             log.info("首次收藏成功：{}", insert);
+            // 发送消息
+            NewBehaviorDTO newBehaviorDTO = new NewBehaviorDTO();
+            newBehaviorDTO.setType(BehaviorType.COLLECTION);
+            newBehaviorDTO.setArticleId(articleId);
+            newBehaviorDTO.setAdd(1);
+            rabbitTemplate.convertAndSend(HotArticleConstants.HOT_ARTICLE_SCORE_BEHAVIOR_QUEUE, JSON.toJSONString(newBehaviorDTO));
+            log.info("发送收藏行为消息成功：{}", newBehaviorDTO);
             return ResponseResult.okResult("收藏成功");
         } else {
             // 取消收藏
@@ -78,6 +93,13 @@ public class ApCollectionBehaviorServiceImpl implements ApCollectionBehaviorServ
                 return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_ALLOW, "文章未收藏，无法取消收藏");
             }
             mongoTemplate.remove(apCollection);
+            // 发送消息
+            NewBehaviorDTO newBehaviorDTO = new NewBehaviorDTO();
+            newBehaviorDTO.setType(BehaviorType.COLLECTION);
+            newBehaviorDTO.setArticleId(articleId);
+            newBehaviorDTO.setAdd(-1);
+            rabbitTemplate.convertAndSend(HotArticleConstants.HOT_ARTICLE_SCORE_BEHAVIOR_QUEUE, JSON.toJSONString(newBehaviorDTO));
+            log.info("发送取消收藏行为消息成功：{}", newBehaviorDTO);
             return ResponseResult.okResult("取消收藏成功");
         }
     }

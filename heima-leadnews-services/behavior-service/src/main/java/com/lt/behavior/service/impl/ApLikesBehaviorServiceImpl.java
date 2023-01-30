@@ -1,5 +1,9 @@
 package com.lt.behavior.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.lt.common.constants.article.HotArticleConstants;
+import com.lt.model.mess.app.NewBehaviorDTO.BehaviorType;
+
 import com.lt.behavior.service.ApBehaviorEntryService;
 import com.lt.behavior.service.ApLikesBehaviorService;
 import com.lt.model.behavior.dto.LikesBehaviorDTO;
@@ -7,14 +11,17 @@ import com.lt.model.behavior.pojo.ApBehaviorEntry;
 import com.lt.model.behavior.pojo.ApLikesBehavior;
 import com.lt.model.common.enums.AppHttpCodeEnum;
 import com.lt.model.common.vo.ResponseResult;
+import com.lt.model.mess.app.NewBehaviorDTO;
 import com.lt.model.threadlocal.AppThreadLocalUtils;
 import com.lt.model.user.pojo.ApUser;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -31,6 +38,8 @@ public class ApLikesBehaviorServiceImpl implements ApLikesBehaviorService {
     private MongoTemplate mongoTemplate;
     @Autowired
     private ApBehaviorEntryService apBehaviorEntryService;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public ResponseResult likeOrLikeBehavior(LikesBehaviorDTO likesBehaviorDTO) {
@@ -62,6 +71,13 @@ public class ApLikesBehaviorServiceImpl implements ApLikesBehaviorService {
             mongoTemplate.remove(
                     Query.query(Criteria.where("entryId").is(entryId).and("articleId").is(articleId).and("type").is(type)),
                     ApLikesBehavior.class);
+            // 发送取消点赞消息
+            NewBehaviorDTO newBehaviorDTO = new NewBehaviorDTO();
+            newBehaviorDTO.setType(BehaviorType.LIKES);
+            newBehaviorDTO.setArticleId(articleId);
+            newBehaviorDTO.setAdd(-1);
+            rabbitTemplate.convertAndSend(HotArticleConstants.HOT_ARTICLE_SCORE_BEHAVIOR_QUEUE, JSON.toJSONString(newBehaviorDTO));
+            log.info("发送取消点赞行为消息成功：{}", newBehaviorDTO);
             return ResponseResult.okResult("取消点赞成功");
         } else {
             // 点赞
@@ -79,6 +95,13 @@ public class ApLikesBehaviorServiceImpl implements ApLikesBehaviorService {
             apLikesBehavior.setCreatedTime(new Date());
             ApLikesBehavior insert = mongoTemplate.insert(apLikesBehavior);
             log.info("点赞实体：{}", insert);
+            // 发送点赞消息
+            NewBehaviorDTO newBehaviorDTO = new NewBehaviorDTO();
+            newBehaviorDTO.setType(BehaviorType.LIKES);
+            newBehaviorDTO.setArticleId(articleId);
+            newBehaviorDTO.setAdd(1);
+            rabbitTemplate.convertAndSend(HotArticleConstants.HOT_ARTICLE_SCORE_BEHAVIOR_QUEUE, JSON.toJSONString(newBehaviorDTO));
+            log.info("发送点赞行为消息成功：{}", newBehaviorDTO);
             return ResponseResult.okResult("点赞成功");
         }
     }

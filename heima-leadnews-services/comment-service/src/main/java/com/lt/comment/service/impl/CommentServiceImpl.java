@@ -1,5 +1,9 @@
 package com.lt.comment.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.lt.common.constants.article.HotArticleConstants;
+import com.lt.model.mess.app.NewBehaviorDTO.BehaviorType;
+
 import com.lt.aliyun.GreenTextScan;
 import com.lt.comment.service.CommentHotService;
 import com.lt.comment.service.CommentService;
@@ -16,6 +20,7 @@ import com.lt.model.comment.pojo.ApCommentLike;
 import com.lt.model.comment.vo.ApCommentVO;
 import com.lt.model.common.enums.AppHttpCodeEnum;
 import com.lt.model.common.vo.ResponseResult;
+import com.lt.model.mess.app.NewBehaviorDTO;
 import com.lt.model.threadlocal.AppThreadLocalUtils;
 import com.lt.model.user.pojo.ApUser;
 import com.lt.utils.common.SensitiveWordUtil;
@@ -23,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -59,6 +65,8 @@ public class CommentServiceImpl implements CommentService {
     private CommentHotService commentHotService;
     @Autowired
     private RedissonClient redissonClient;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public ResponseResult saveComment(CommentSaveDTO commentSaveDTO) {
@@ -128,6 +136,13 @@ public class CommentServiceImpl implements CommentService {
         apComment.setUpdatedTime(new Date());
         ApComment insert = mongoTemplate.insert(apComment);
         log.info("发表评论成功：{}", insert);
+        // 发送消息
+        NewBehaviorDTO newBehaviorDTO = new NewBehaviorDTO();
+        newBehaviorDTO.setType(BehaviorType.COMMENT);
+        newBehaviorDTO.setArticleId(commentSaveDTO.getArticleId());
+        newBehaviorDTO.setAdd(1);
+        rabbitTemplate.convertAndSend(HotArticleConstants.HOT_ARTICLE_SCORE_BEHAVIOR_QUEUE, JSON.toJSONString(newBehaviorDTO));
+        log.info("发送评论行为消息成功：{}", newBehaviorDTO);
         return ResponseResult.okResult("发表评论成功");
     }
 
