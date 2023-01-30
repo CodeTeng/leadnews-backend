@@ -203,16 +203,7 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
         // 2. 查询 mapper
         List<ApArticle> apArticles = apArticleMapper.loadArticleList(dto, loadtype);
         // 添加静态页面访问前缀 和 阿里云访问前缀
-        apArticles = apArticles.stream().peek(apArticle -> {
-            String images = apArticle.getImages();
-            apArticle.setStaticUrl(readPath + apArticle.getStaticUrl());
-            if (StringUtils.isNotBlank(images)) {
-                images = Arrays.stream(images.split(","))
-                        .map(url -> webSite + url)
-                        .collect(Collectors.joining(","));
-                apArticle.setImages(images);
-            }
-        }).collect(Collectors.toList());
+        apArticles = apArticles.stream().peek(this::parseArticle).collect(Collectors.toList());
         return ResponseResult.okResult(apArticles);
     }
 
@@ -248,13 +239,13 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
     public ResponseResult load2(Short loadTypeLoadMore, ArticleHomeDTO dto, boolean firstPage) {
         // 参数校验
         loadTypeLoadMore = checkParam(loadTypeLoadMore, dto);
-        // 是首页文章 为热点文章
+        // 是首页文章 为热点文章 从redis中查询
         if (firstPage) {
             String articleListJson = stringRedisTemplate.opsForValue().get(ArticleConstants.HOT_ARTICLE_FIRST_PAGE + dto.getTag());
             if (StringUtils.isNotBlank(articleListJson)) {
                 List<ApArticle> apArticles = JSON.parseArray(articleListJson, ApArticle.class);
                 for (ApArticle apArticle : apArticles) {
-                    apArticle.setStaticUrl(readPath + apArticle.getStaticUrl());
+                    parseArticle(apArticle);
                 }
                 ResponseResult result = ResponseResult.okResult(apArticles);
                 result.setHost(webSite);
@@ -262,5 +253,17 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
             }
         }
         return load(loadTypeLoadMore, dto);
+    }
+
+    private void parseArticle(ApArticle apArticle) {
+        apArticle.setStaticUrl(readPath + apArticle.getStaticUrl());
+        String images = apArticle.getImages();
+        apArticle.setStaticUrl(readPath + apArticle.getStaticUrl());
+        if (StringUtils.isNotBlank(images)) {
+            images = Arrays.stream(images.split(","))
+                    .map(url -> webSite + url)
+                    .collect(Collectors.joining(","));
+            apArticle.setImages(images);
+        }
     }
 }
