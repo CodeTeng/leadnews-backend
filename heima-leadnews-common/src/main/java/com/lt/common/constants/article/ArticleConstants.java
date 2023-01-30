@@ -18,4 +18,15 @@ public interface ArticleConstants {
      * 加载所有
      */
     String DEFAULT_TAG = "__all__";
+    /**
+     * 文章行为分值
+     */
+    Integer HOT_ARTICLE_VIEW_WEIGHT = 1;
+    Integer HOT_ARTICLE_LIKE_WEIGHT = 3;
+    Integer HOT_ARTICLE_COMMENT_WEIGHT = 5;
+    Integer HOT_ARTICLE_COLLECTION_WEIGHT = 8;
+    /**
+     * 存到redis热文章前缀
+     */
+    String HOT_ARTICLE_FIRST_PAGE = "hot_article_first_page_";
 }

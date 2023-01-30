@@ -1,6 +1,7 @@
 package com.lt.feigns.fallback;
 
 import com.lt.feigns.AdminFeign;
+import com.lt.model.admin.pojo.AdChannel;
 import com.lt.model.common.enums.AppHttpCodeEnum;
 import com.lt.model.common.vo.ResponseResult;
 import feign.hystrix.FallbackFactory;
@@ -32,6 +33,12 @@ public class AdminFeignFallback implements FallbackFactory<AdminFeign> {
             public ResponseResult findOne(Integer id) {
                 log.info("参数: {}", id);
                 log.error("AdminFeign findOne 远程调用出错啦 ~~~ !!!! {} ", throwable.getMessage());
+                return ResponseResult.errorResult(AppHttpCodeEnum.REMOTE_SERVER_ERROR);
+            }
+
+            @Override
+            public ResponseResult<List<AdChannel>> selectChannels() {
+                log.error("AdminFeign selectChannels 远程调用出错啦 ~~~ !!!! {} ", throwable.getMessage());
                 return ResponseResult.errorResult(AppHttpCodeEnum.REMOTE_SERVER_ERROR);
             }
         };

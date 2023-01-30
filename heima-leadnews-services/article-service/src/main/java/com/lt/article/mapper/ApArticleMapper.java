@@ -18,4 +18,11 @@ public interface ApArticleMapper extends BaseMapper<ApArticle> {
      * @return 文章集合
      */
     List<ApArticle> loadArticleList(@Param("dto") ArticleHomeDTO dto, @Param("type") Short type);
+
+    /**
+     * 查询前5天的文章
+     *
+     * @param beginDate 前5天的时间
+     */
+    List<ApArticle> selectArticleByDate(@Param("beginDate") String beginDate);
 }

@@ -26,4 +26,7 @@ public interface AdminFeign {
 
     @GetMapping("/api/v1/channel/one/{id}")
     ResponseResult<AdChannel> findOne(@PathVariable Integer id);
+
+    @GetMapping("/api/v1/channel/channels")
+    ResponseResult<List<AdChannel>> selectChannels();
 }
