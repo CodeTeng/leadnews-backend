@@ -6,8 +6,10 @@ import com.lt.model.article.dto.ArticleHomeDTO;
 import com.lt.model.article.pojo.ApArticle;
 import com.lt.model.common.enums.AppHttpCodeEnum;
 import com.lt.model.common.vo.ResponseResult;
+import com.lt.model.search.vo.SearchArticleVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -52,5 +54,20 @@ public class ArticleHomeController {
             return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST, "文章不存在");
         }
         return ResponseResult.okResult(apArticle);
+    }
+
+    @ApiOperation("根据ID查询文章搜索VO")
+    @GetMapping("/{id}")
+    public ResponseResult findArticle(@PathVariable Long id) {
+        if (id == null || id <= 0) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        }
+        SearchArticleVO searchArticleVo = null;
+        ApArticle article = articleService.getById(id);
+        if (article != null) {
+            searchArticleVo = new SearchArticleVO();
+            BeanUtils.copyProperties(article, searchArticleVo);
+        }
+        return ResponseResult.okResult(searchArticleVo);
     }
 }

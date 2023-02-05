@@ -5,6 +5,7 @@ import com.lt.model.article.pojo.ApArticle;
 import com.lt.model.article.pojo.ApAuthor;
 import com.lt.model.common.enums.AppHttpCodeEnum;
 import com.lt.model.common.vo.ResponseResult;
+import com.lt.model.search.vo.SearchArticleVO;
 import feign.hystrix.FallbackFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -40,6 +41,12 @@ public class ArticleFeignFallback implements FallbackFactory<ArticleFeign> {
                 log.error("参数 id: {}", id);
                 log.error("ArticleFeign save 远程调用出错啦 ~~~ !!!! {} ", throwable.getMessage());
                 return ResponseResult.errorResult(AppHttpCodeEnum.REMOTE_SERVER_ERROR);
+            }
+
+            @Override
+            public ResponseResult<SearchArticleVO> findArticle(Long id) {
+                log.error(" 远程调用文章微服务  中  findArticle方法出错   ,  参数:{}      异常原因: {}", id, throwable.getCause());
+                return ResponseResult.errorResult(AppHttpCodeEnum.REMOTE_SERVER_ERROR, "远程调用查询Article出错," + throwable.getMessage());
             }
         };
     }

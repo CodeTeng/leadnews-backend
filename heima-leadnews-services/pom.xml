@@ -18,6 +18,8 @@
         <module>article-service</module>
         <module>behavior-service</module>
         <module>comment-service</module>
+        <module>data-sync-service</module>
+        <module>search-service</module>
     </modules>
 
     <properties>
@@ -27,6 +29,11 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>5.2</version>
+        </dependency>
         <!-- 统一feign远程调用依赖 引入后可以直接注入feign接口-->
         <dependency>
             <artifactId>heima-leadnews-feign</artifactId>

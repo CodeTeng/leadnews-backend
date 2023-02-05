@@ -5,6 +5,7 @@ import com.lt.feigns.fallback.ArticleFeignFallback;
 import com.lt.model.article.pojo.ApArticle;
 import com.lt.model.article.pojo.ApAuthor;
 import com.lt.model.common.vo.ResponseResult;
+import com.lt.model.search.vo.SearchArticleVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,4 +30,7 @@ public interface ArticleFeign {
 
     @GetMapping("/api/v1/article/findById/{id}")
     ResponseResult<ApArticle> findById(@PathVariable("id") Long id);
+
+    @GetMapping("/api/v1/article/{id}")
+    ResponseResult<SearchArticleVO> findArticle(@PathVariable("id") Long id);
 }

@@ -10,6 +10,7 @@ import com.lt.article.mapper.AuthorMapper;
 import com.lt.article.service.ApArticleService;
 import com.lt.article.service.GeneratePageService;
 import com.lt.common.constants.article.ArticleConstants;
+import com.lt.common.constants.message.NewsUpOrDownConstants;
 import com.lt.exception.CustomException;
 import com.lt.feigns.AdminFeign;
 import com.lt.feigns.WemediaFeign;
@@ -25,6 +26,7 @@ import com.lt.model.wemedia.pojo.WmNews;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,6 +58,8 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
     private ApArticleMapper apArticleMapper;
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
     @Value("${file.oss.web-site}")
     private String webSite;
     @Value("${file.minio.readPath}")
@@ -79,7 +83,9 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
         generatePageService.generateArticlePage(wmNews.getContent(), apArticle);
         // 6. 更新 wmNews 状态，改为已发布，并设置 articleID
         updateWmNews(wmNews, apArticle);
-        // 7. todo 通知 es 索引库添加索引
+        // 7. 通知 es 索引库添加文章索引
+        rabbitTemplate.convertAndSend(NewsUpOrDownConstants.NEWS_UP_FOR_ES_QUEUE, apArticle.getId());
+        log.info("文章发布成功，并发送索引库更新通知   文章id: {}", apArticle.getId());
     }
 
     /**
