@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class AdChannelServiceImpl extends ServiceImpl<AdChannelMapper, AdChannel> implements AdChannelService {
-
     @Override
     public ResponseResult getChannelByNameAndPage(ChannelDTO channelDTO) {
         LambdaQueryWrapper<AdChannel> queryWrapper = new LambdaQueryWrapper<>();
