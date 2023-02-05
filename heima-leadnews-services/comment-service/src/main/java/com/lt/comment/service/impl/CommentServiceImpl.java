@@ -233,7 +233,7 @@ public class CommentServiceImpl implements CommentService {
         if (commentDTO.getIndex().intValue() == 1) {
             // 是第一页
             // 1.1 先查询热点评论集合(最多5条) 点赞降序
-            Query likeQuery = Query.query(Criteria.where("flag").is((short) 1));
+            Query likeQuery = Query.query(Criteria.where("articleId").is(commentDTO.getArticleId()).and("flag").is((short) 1));
             Sort likes = Sort.by(Sort.Direction.DESC, "likes");
             likeQuery.with(likes);
             List<ApComment> hotCommentList = mongoTemplate.find(likeQuery, ApComment.class);
@@ -244,12 +244,12 @@ public class CommentServiceImpl implements CommentService {
             // 1.2 查询第一页剩余普通评论 (条件: 文章id, flag=0, 时间降序, limit:新size)
             Long articleId = commentDTO.getArticleId();
             Date minDate = commentDTO.getMinDate();
-            Query query = Query.query(Criteria.where("articleId").is(articleId).and("flag").is((short) 0).and("createdTime").lt(minDate));
+            Query query = Query.query(Criteria.where("articleId").is(articleId).and("flag").is((short) 0).and("updatedTime").lt(minDate));
             // 分页 从 0 开始表示第一页
             Pageable pageable = PageRequest.of(0, commentDTO.getSize());
             query.with(pageable);
             // 降序
-            Sort sort = Sort.by(Sort.Direction.DESC, "createdTime");
+            Sort sort = Sort.by(Sort.Direction.DESC, "updatedTime");
             query.with(sort);
             List<ApComment> commonCommentList = mongoTemplate.find(query, ApComment.class);
             // 合并热点评论和普通评论
@@ -259,13 +259,13 @@ public class CommentServiceImpl implements CommentService {
             // 不是第一页
             Long articleId = commentDTO.getArticleId();
             Date minDate = commentDTO.getMinDate();
-            Query query = Query.query(Criteria.where("articleId").is(articleId).and("flag").is((short) 0).and("createdTime").lt(minDate));
+            Query query = Query.query(Criteria.where("articleId").is(articleId).and("flag").is((short) 0).and("updatedTime").lt(minDate));
             // 分页
             Short index = commentDTO.getIndex();
             Pageable pageable = PageRequest.of(index - 1, commentDTO.getSize());
             query.with(pageable);
             // 降序
-            Sort sort = Sort.by(Sort.Direction.DESC, "createdTime");
+            Sort sort = Sort.by(Sort.Direction.DESC, "updatedTime");
             query.with(sort);
             commentList = mongoTemplate.find(query, ApComment.class);
         }

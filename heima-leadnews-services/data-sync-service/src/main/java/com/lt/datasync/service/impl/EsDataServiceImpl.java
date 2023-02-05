@@ -31,12 +31,12 @@ public class EsDataServiceImpl implements EsDataService {
     @Override
     public ResponseResult dataInit() {
         // 1. 判断索引库是否存在
-        if (esService.existIndex(SearchConstants.ARTICLE_INDEX_NAME)) {
-            // 存在 删除索引库
-            esService.deleteIndex(SearchConstants.ARTICLE_INDEX_NAME);
-        }
-        // 2. 创建索引库
-        esService.createIndex(SearchConstants.ARTICLE_INDEX_MAPPING, SearchConstants.ARTICLE_INDEX_NAME);
+//        if (esService.existIndex(SearchConstants.ARTICLE_INDEX_NAME)) {
+//            // 存在 删除索引库
+//            esService.deleteIndex(SearchConstants.ARTICLE_INDEX_NAME);
+//        }
+//        // 2. 创建索引库
+//        esService.createIndex(SearchConstants.ARTICLE_INDEX_MAPPING, SearchConstants.ARTICLE_INDEX_NAME);
         // 3. 获取 mysql 数据 并转换 Es 格式
         List<ApArticle> apArticles = apArticleMapper.findAllArticles();
         if (apArticles == null || apArticles.size() == 0) {

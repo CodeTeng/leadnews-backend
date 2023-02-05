@@ -1,7 +1,5 @@
 package com.lt.model.search.vo;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.lt.model.common.anno.EsId;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -18,7 +16,6 @@ import java.util.Date;
 @ApiModel("搜索文章VO")
 public class SearchArticleVO {
     @EsId
-    @JsonSerialize(using = ToStringSerializer.class)
     @ApiModelProperty("文章id")
     private Long id;
     @ApiModelProperty(" 文章标题")

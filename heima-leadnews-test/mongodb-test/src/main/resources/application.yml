@@ -5,5 +5,5 @@ spring:
     name: mongo-demo
   data:
     mongodb:
-      host: 192.168.80.128
+      host: 47.100.217.49
       database: leadnews-comment

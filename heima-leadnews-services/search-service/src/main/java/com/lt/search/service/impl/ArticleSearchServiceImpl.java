@@ -109,6 +109,6 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
 
     @Override
     public void deleteArticle(String articleId) {
-        esService.deleteById(SearchConstants.ARTICLE_INDEX_NAME, articleId);
+        esService.deleteById(articleId, SearchConstants.ARTICLE_INDEX_NAME);
     }
 }
